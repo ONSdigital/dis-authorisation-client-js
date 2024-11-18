@@ -1,0 +1,18 @@
+---
+
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: golang
+    tag: latest
+
+inputs:
+  - name: dis-authorisation-client-js
+
+caches:
+  - path: go/
+
+run:
+  path: dis-authorisation-client-js/ci/scripts/unit.sh
