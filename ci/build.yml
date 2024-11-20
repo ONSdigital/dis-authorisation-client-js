@@ -5,7 +5,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: golang
+    repository: node
     tag: latest
 
 inputs:
@@ -13,9 +13,6 @@ inputs:
 
 outputs:
   - name: build
-
-caches:
-  - path: go/
 
 run:
   path: dis-authorisation-client-js/ci/scripts/build.sh

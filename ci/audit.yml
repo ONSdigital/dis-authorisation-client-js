@@ -4,12 +4,11 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: onsdigital/dp-concourse-tools-nancy
+    repository: node
     tag: latest
 
 inputs:
   - name: dis-authorisation-client-js
-    path: dis-authorisation-client-js
 
 run:
   path: dis-authorisation-client-js/ci/scripts/audit.sh

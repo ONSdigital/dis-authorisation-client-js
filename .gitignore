@@ -10,3 +10,6 @@
 .idea/
 *.iml
 *.iws
+
+# Node modules
+node_modules/

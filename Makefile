@@ -9,11 +9,15 @@ all: delimiter-AUDIT audit delimiter-UNIT-TESTS test delimiter-LINTERS lint deli
 
 .PHONY: audit
 audit: ## Runs checks for security vulnerabilities on dependencies (including transient ones)
-	go list -json -m all | nancy sleuth
+	npm audit
 
 .PHONY: build
-build: ## Builds binary of library code as dis-authorisation-client-js
-	go build ./...
+build: ## Builds binary of library code
+	exit
+
+.PHONY: install
+install: ## Installs dependencies
+	npm install
 
 .PHONY: convey
 convey: ## Runs unit test suite and outputs results on http://127.0.0.1:8080/
@@ -23,21 +27,17 @@ convey: ## Runs unit test suite and outputs results on http://127.0.0.1:8080/
 delimiter-%:
 	@echo '===================${GREEN} $* ${RESET}==================='
 
-.PHONY: fmt
-fmt: ## Run Go formatting on code
-	go fmt ./...
-
 .PHONY: lint
-lint: ## Used in ci to run linters against Go code
-	golangci-lint run ./...
-
-.PHONY: lint-local
-lint-local: ## Use locally to run linters against Go code
-	golangci-lint run ./...
+lint: ## Used in ci to run linters against JS code
+	npm run lint
 
 .PHONY: test
 test: ## Runs unit tests including checks for race conditions and returns coverage
-	go test -race -cover ./...
+	npm test
+
+.PHONY: test-component
+test-component: ## Runs component test suite
+	exit
 
 .PHONY: help
 help: ## Show help page for list of make targets

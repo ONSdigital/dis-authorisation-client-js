@@ -1,5 +1,5 @@
 # dis-authorisation-client-js
-JS library for client side token renewal
+test
 
 ### Getting started
 
@@ -7,7 +7,7 @@ JS library for client side token renewal
 
 ### Dependencies
 
-* No further dependencies other than those defined in `go.mod`
+* No further dependencies other than those defined in `package.json`
 
 ### Contributing
 
