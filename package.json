@@ -1,18 +1,24 @@
 {
   "name": "dis-authorisation-client-js",
   "version": "0.1.0",
-  "description": "test",
+  "description": "JS library for client side token renewal",
   "main": "src/index.js",
-  "dependencies": {},
+  "dependencies": {
+    "@babel/eslint-parser": "^7.25.9"
+  },
   "devDependencies": {
     "@babel/preset-env": "^7.26.0",
     "babel-jest": "^29.7.0",
-    "eslint": "^9.15.0",
-    "jest": "^29.7.0"
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-jest": "^28.9.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.3.3"
   },
   "scripts": {
     "lint": "eslint .",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write ."
   },
   "author": "",
   "license": "ISC",
