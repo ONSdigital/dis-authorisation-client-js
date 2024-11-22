@@ -19,10 +19,6 @@ build: ## Builds binary of library code
 install: ## Installs dependencies
 	npm install
 
-.PHONY: convey
-convey: ## Runs unit test suite and outputs results on http://127.0.0.1:8080/
-	goconvey ./...
-
 .PHONY: delimiter-%
 delimiter-%:
 	@echo '===================${GREEN} $* ${RESET}==================='

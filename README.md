@@ -1,5 +1,5 @@
 # dis-authorisation-client-js
-test
+JS library for client side token renewal
 
 ### Getting started
 
