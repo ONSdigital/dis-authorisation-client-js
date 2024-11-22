@@ -31,6 +31,9 @@ export default [
         document: "readonly",
       },
     },
+    rules: {
+      "no-underscore-dangle": "off",
+    },
   },
   {
     files: ["**/*.test.js"],

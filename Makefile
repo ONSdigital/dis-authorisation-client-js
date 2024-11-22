@@ -19,10 +19,6 @@ build: ## Builds binary of library code
 install: ## Installs dependencies
 	npm install
 
-.PHONY: format
-format: ## Formats code using prettier
-	npm run format
-
 .PHONY: delimiter-%
 delimiter-%:
 	@echo '===================${GREEN} $* ${RESET}==================='
@@ -30,6 +26,10 @@ delimiter-%:
 .PHONY: lint
 lint: ## Used in ci to run linters against JS code
 	npm run lint
+
+.PHONY: lint-fix
+lint-fix: ## Used in ci to run linters against JS code
+	npm run lint:fix
 
 .PHONY: test
 test: ## Runs unit tests including checks for race conditions and returns coverage
