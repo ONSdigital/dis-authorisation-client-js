@@ -19,6 +19,10 @@ build: ## Builds binary of library code
 install: ## Installs dependencies
 	npm install
 
+.PHONY: format
+format: ## Formats code using prettier
+	npm run format
+
 .PHONY: delimiter-%
 delimiter-%:
 	@echo '===================${GREEN} $* ${RESET}==================='
