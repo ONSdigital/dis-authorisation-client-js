@@ -13,7 +13,11 @@ audit: ## Runs checks for security vulnerabilities on dependencies (including tr
 
 .PHONY: build
 build: ## Builds binary of library code
-	exit
+	npm run build
+
+.PHONY: clean
+clean: ## Cleans up build directory
+	npm run clean
 
 .PHONY: install
 install: ## Installs dependencies
