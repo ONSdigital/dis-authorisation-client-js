@@ -1,6 +1,6 @@
 #!/bin/bash -eux
 
 pushd dis-authorisation-client-js
-  npm install --silent
+  npm ci --silent
   make test
 popd

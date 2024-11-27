@@ -1,6 +1,6 @@
 #!/bin/bash -eux
 
 pushd dis-authorisation-client-js
-  npm ci
+  npm ci --silent
   make lint
 popd
