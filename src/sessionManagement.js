@@ -13,7 +13,10 @@ export default class SessionManagement {
   static eventsToMonitor = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
 
   static init(config) {
-    this.config = config;
+    if (!config || typeof config !== 'object') {
+      throw new Error('[LIBRARY] Invalid configuration object');
+    }
+    this.config = Object.freeze(config);
   }
 
   static setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime) {
