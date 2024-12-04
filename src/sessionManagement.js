@@ -82,8 +82,9 @@ export default class SessionManagement {
   static monitorInteraction = () => {
     console.log('[LIBRARY] Monitoring user interaction');
     console.log('[LIBRARY] Event listeners added: ', this.eventsToMonitor);
+    const throttledRefresh = throttle(this.refreshSession, 1000);
     this.eventsToMonitor.forEach((name) => {
-      document.addEventListener(name, this.refreshSession);
+      document.addEventListener(name, throttledRefresh);
     });
   };
 
