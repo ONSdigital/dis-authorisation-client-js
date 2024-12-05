@@ -119,8 +119,8 @@ export default class SessionManagement {
       console.error("[LIBRARY] an unexpected error has occurred when extending the user's session");
       if (error != null) {
         console.error(error);
-        if (this.config.onSessionRenewFailure) {
-            this.config.onSessionRenewFailure(error);
+        if (this.config.onRenewFailure) {
+            this.config.onRenewFailure(error);
         }
       }
     };
@@ -135,8 +135,8 @@ export default class SessionManagement {
           );
           this.startSessionTimer(expirationTime);
 
-          if (this.config.onSessionRenewed) {
-            this.config.onSessionRenewed(expirationTime);
+          if (this.config.onRenewSuccess) {
+            this.config.onRenewSuccess(expirationTime);
           }
         } else {
           renewError();
