@@ -119,19 +119,25 @@ export default class SessionManagement {
       console.error("[LIBRARY] an unexpected error has occurred when extending the user's session");
       if (error != null) {
         console.error(error);
+        if (this.config.onSessionRenewFailure) {
+            this.config.onSessionRenewFailure(error);
+        }
       }
     };
     console.log('[LIBRARY] Updating session timer via API 1');
     this.renewSession()
       .then((response) => {
         if (response) {
-          console.log('[LIBRARY] Session renewed successfully, response data:', response);
           const expirationTime = this.convertUTCToJSDate(fp.get('expirationTime')(response.data));
           console.log(
             '[LIBRARY] Session renewed successfully, new expiration time:',
             expirationTime,
           );
           this.startSessionTimer(expirationTime);
+
+          if (this.config.onSessionRenewed) {
+            this.config.onSessionRenewed(expirationTime);
+          }
         } else {
           renewError();
         }
