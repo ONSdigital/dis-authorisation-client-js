@@ -1,20 +1,41 @@
 import fp from 'lodash/fp';
 import defaultConfig from './config/config';
+
 export default class SessionManagement {
   static config = {};
+
   static timers = {};
+
   static eventsToMonitor = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
 
-  static init(config) {
+  static async init(config) {
     if (!config || typeof config !== 'object') {
       throw new Error('[LIBRARY] Invalid configuration object');
     }
     this.config = Object.freeze({ ...defaultConfig, ...config });
+
+    if (this.config.checkSessionOnInit) {
+      console.log('[LIBRARY] Checking initial session state');
+      const data = await this.checkSessionStatus();
+      const sessionExpiryTime = fp.get('expirationTime')(data);
+      if (sessionExpiryTime) {
+        console.log('[LIBRARY] Initial session is active, setting timers');
+        this.setSessionExpiryTime(this.convertUTCToJSDate(sessionExpiryTime));
+        if (this.config.onSessionValid) {
+          this.config.onSessionValid(sessionExpiryTime);
+        }
+      } else {
+        console.log('[LIBRARY] No active session found');
+        if (this.config.onSessionInvalid) {
+          this.config.onSessionInvalid();
+        }
+      }
+    }
   }
 
   static setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime) {
-    if(!this.config){
-        this.init(config)
+    if (!this.config) {
+      this.init(config);
     }
     console.log('[LIBRARY] Setting session expiry time');
     this.initialiseSessionExpiryTimers(sessionExpiryTime, refreshExpiryTime);
@@ -78,9 +99,9 @@ export default class SessionManagement {
   static monitorInteraction = () => {
     console.log('[LIBRARY] Monitoring user interaction');
     console.log('[LIBRARY] Event listeners added: ', this.eventsToMonitor);
-    const throttledRefresh = throttle(this.refreshSession, 1000);
+
     this.eventsToMonitor.forEach((name) => {
-      document.addEventListener(name, throttledRefresh);
+      document.addEventListener(name, this.refreshSession);
     });
   };
 
@@ -121,7 +142,6 @@ export default class SessionManagement {
   };
 
   static isSessionExpired(sessionExpiryTime) {
-    console.log('[IS SESSION EXPIRED] expiry date: ', sessionExpiryTime);
     if (sessionExpiryTime == null) {
       return true;
     }
@@ -166,4 +186,16 @@ export default class SessionManagement {
 
     return data;
   }
+
+  static checkSessionStatus = async () => {
+    console.log('[LIBRARY] Checking initial session status');
+    const response = await fetch('api/tokens/self', { method: 'GET' });
+
+    if (response.ok) {
+      const data = await response.data;
+      console.log('[LIBRARY] Initial session status:', data);
+      return data;
+    }
+    throw new Error('Failed to check session status');
+  };
 }
