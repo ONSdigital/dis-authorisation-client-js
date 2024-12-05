@@ -1,25 +1,21 @@
 import fp from 'lodash/fp';
-
+import defaultConfig from './config/config';
 export default class SessionManagement {
-  static config = {
-    timeOffsets: {
-      passiveRenewal: 2000,
-      invasiveRenewal: 3000,
-    },
-  };
-
+  static config = {};
   static timers = {};
-
   static eventsToMonitor = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
 
   static init(config) {
     if (!config || typeof config !== 'object') {
       throw new Error('[LIBRARY] Invalid configuration object');
     }
-    this.config = Object.freeze(config);
+    this.config = Object.freeze({ ...defaultConfig, ...config });
   }
 
   static setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime) {
+    if(!this.config){
+        this.init(config)
+    }
     console.log('[LIBRARY] Setting session expiry time');
     this.initialiseSessionExpiryTimers(sessionExpiryTime, refreshExpiryTime);
   }
