@@ -1,5 +1,5 @@
 import fp from 'lodash/fp';
-import defaultConfig from './config/config';
+import defaultConfig from '../config/config';
 
 export default class SessionManagement {
   static config = {};
