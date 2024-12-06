@@ -1,5 +1,5 @@
 // src/index.js
-import SessionManagement from './lib/sessionManagement';
+import SessionManagement from './lib/session-management';
 
 export {
   SessionManagement,

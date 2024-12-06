@@ -12,4 +12,9 @@ const defaultConfig = {
   checkSessionOnInit: false,
 };
 
-export default defaultConfig;
+const apiConfig = {
+  RENEW_SESSION: 'api/tokens/self',
+  CHECK_SESSION: 'api/tokens/self',
+};
+
+export default { defaultConfig, apiConfig };

@@ -13,7 +13,7 @@ export default class SessionManagement {
       throw new Error('[LIBRARY] Invalid configuration object');
     }
     this.config = Object.freeze({ ...defaultConfig, ...config });
-
+    console.log('[LIBRARY] Initialising session management with config:', this.config);
     if (this.config.checkSessionOnInit) {
       console.log('[LIBRARY] Checking initial session state');
       const data = await this.checkSessionStatus();
@@ -112,53 +112,54 @@ export default class SessionManagement {
     });
   };
 
-  static refreshSession = () => {
+  static refreshSession = async () => {
     console.log('[LIBRARY] Refreshing session');
     this.removeInteractionMonitoring();
     const renewError = (error) => {
-      console.error("[LIBRARY] an unexpected error has occurred when extending the user's session");
+      console.log("[LIBRARY] an unexpected error has occurred when extending the user's session");
       if (error != null) {
         console.error(error);
         if (this.config.onRenewFailure) {
-            this.config.onRenewFailure(error);
+          this.config.onRenewFailure(error);
         }
       }
     };
     console.log('[LIBRARY] Updating session timer via API 1');
-    this.renewSession()
-      .then((response) => {
-        if (response) {
-          const expirationTime = this.convertUTCToJSDate(fp.get('expirationTime')(response.data));
-          console.log(
-            '[LIBRARY] Session renewed successfully, new expiration time:',
-            expirationTime,
-          );
-          this.startSessionTimer(expirationTime);
-
-          if (this.config.onRenewSuccess) {
-            this.config.onRenewSuccess(expirationTime);
-          }
-        } else {
-          renewError();
+    try {
+      const response = await this.renewSession();
+      if (response) {
+        const expirationTime = this.convertUTCToJSDate(fp.get('expirationTime')(response));
+        console.log(
+          '[LIBRARY] Session renewed successfully, new expiration time:',
+          expirationTime,
+        );
+        this.startSessionTimer(expirationTime);
+        if (this.config.onRenewSuccess) {
+          this.config.onRenewSuccess(expirationTime);
         }
-      })
-      .catch((error) => {
-        renewError(error);
-      });
+      } else {
+        renewError();
+      }
+    } catch (error) {
+      renewError(error);
+    }
   };
 
   static isSessionExpired(sessionExpiryTime) {
     if (sessionExpiryTime == null) {
       return true;
     }
+    console.log('[IS SESSION EXPIRED] sessionExpiryTime: ', sessionExpiryTime);
     const now = new Date();
     const nowUTCInMS = now.getTime() + now.getTimezoneOffset() * 60000;
     const nowInUTC = new Date(nowUTCInMS);
-
+    console.log('[IS SESSION EXPIRED] nowInUTC: ', nowInUTC);
+    console.log('[IS SESSION EXPIRED] sessionExpiryTime: ', new Date(sessionExpiryTime));
     // Get the time difference between now and the expiry time minus the timer offset
     const timerInterval = new Date(sessionExpiryTime) - nowInUTC;
-
+    console.log('[IS SESSION EXPIRED] timerInterval: ', timerInterval);
     const diffInSeconds = Math.round(timerInterval / 1000);
+    console.log('[IS SESSION EXPIRED] diff: ', diffInSeconds);
     if (Number.isNaN(diffInSeconds)) {
       throw new Error('encounted an error checking time interval: diffInSeconds is NaN');
     }
@@ -198,10 +199,19 @@ export default class SessionManagement {
     const response = await fetch('api/tokens/self', { method: 'GET' });
 
     if (response.ok) {
-      const data = await response.data;
+      const data = await response.json();
       console.log('[LIBRARY] Initial session status:', data);
       return data;
     }
     throw new Error('Failed to check session status');
+  };
+
+  static removeTimers = () => {
+    this.removeInteractionMonitoring();
+
+    for (const [key] of Object.entries(this.timers)) {
+      clearTimeout(this.timers[key]);
+    }
+    this.timers = {};
   };
 }
