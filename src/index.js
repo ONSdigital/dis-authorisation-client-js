@@ -1,11 +1,4 @@
-// TODO replace helloworld
+// src/index.js
+import SessionManagement from './lib/session-management';
 
-class HelloWorld {
-  constructor(message) {
-    this.message = message;
-  }
-}
-
-const newHelloWorld = (message = 'Hello world!') => new HelloWorld(message);
-
-export default newHelloWorld;
+export default SessionManagement;
