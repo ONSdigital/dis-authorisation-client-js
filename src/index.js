@@ -1,6 +1,4 @@
 // src/index.js
 import SessionManagement from './lib/session-management';
 
-export {
-  SessionManagement,
-};
+export default SessionManagement;

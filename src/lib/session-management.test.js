@@ -4,7 +4,7 @@ import SessionManagement from './session-management';
 import defaultConfig from '../config/config';
 
 jest.useFakeTimers(); // Mock timers for testing
-jest.mock('./config/config', () => ({
+jest.mock('../config/config', () => ({
   timeOffsets: {
     passiveRenewal: 2000,
     intrusiveRenewal: 1000,

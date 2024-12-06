@@ -35,7 +35,7 @@ export default class SessionManagement {
 
   static setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime) {
     if (!this.config) {
-      this.init(config);
+      this.init(this.config);
     }
     console.log('[LIBRARY] Setting session expiry time');
     this.initialiseSessionExpiryTimers(sessionExpiryTime, refreshExpiryTime);
@@ -209,9 +209,10 @@ export default class SessionManagement {
   static removeTimers = () => {
     this.removeInteractionMonitoring();
 
-    for (const [key] of Object.entries(this.timers)) {
-      clearTimeout(this.timers[key]);
-    }
+    Object.values(this.timers).forEach((timer) => {
+      clearTimeout(timer);
+    });
+
     this.timers = {};
   };
 }
