@@ -45,6 +45,37 @@ describe('SessionManagement', () => {
     SessionManagement.timers = {}; // Clear timers between tests
   });
 
+  describe('event listeners', () => {
+    test('should add event listeners for interaction monitoring', () => {
+      SessionManagement.monitorInteraction();
+    
+      expect(document.addEventListener).toHaveBeenCalledTimes(SessionManagement.eventsToMonitor.length);
+      SessionManagement.eventsToMonitor.forEach((event) => {
+        expect(document.addEventListener).toHaveBeenCalledWith(event, SessionManagement.refreshSession);
+      });
+    });
+    
+    test('should remove event listeners for interaction monitoring', () => {
+      SessionManagement.monitorInteraction();
+      SessionManagement.removeInteractionMonitoring();
+    
+      expect(document.removeEventListener).toHaveBeenCalledTimes(SessionManagement.eventsToMonitor.length);
+      SessionManagement.eventsToMonitor.forEach((event) => {
+        expect(document.removeEventListener).toHaveBeenCalledWith(event, SessionManagement.refreshSession);
+      });
+    });
+  });
+
+  test('should throw error if invalid config is passed to init', async () => {
+    // TODO change thrown error message
+    await expect(SessionManagement.init(null)).rejects.toThrow('[LIBRARY] Invalid configuration object');
+  });
+  
+  test('should apply default configuration if no custom config is provided', async () => {
+    await SessionManagement.init({});
+    expect(SessionManagement.config).toEqual(defaultConfig);
+  });
+
   test('should initialise with valid session and call onSessionValid', async () => {
     const mockFetch = jest.fn(() => Promise.resolve({
       ok: true,
@@ -103,6 +134,27 @@ describe('SessionManagement', () => {
     expect(mockOnRenewFailure).toHaveBeenCalledWith(expect.any(Error));
   });
 
+  test('should throw error if network request fails in renewSession', async () => {
+    const mockFetch = jest.fn(() => Promise.reject(new Error('Network error')));
+    global.fetch = mockFetch;
+  
+    await expect(SessionManagement.renewSession()).rejects.toThrow('Network error');
+    expect(mockFetch).toHaveBeenCalled();
+  });
+  
+  test('should throw error if response cannot be parsed as JSON', async () => {
+    const mockFetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.reject(new Error('Invalid JSON')),
+      })
+    );
+    global.fetch = mockFetch;
+  
+    await expect(SessionManagement.renewSession()).rejects.toThrow('Invalid JSON');
+    expect(mockFetch).toHaveBeenCalled();
+  });
+
   test("when no times are given to the function setSessionExpiryTime it doesn't set any timers", () => {
     SessionManagement.setSessionExpiryTime();
 
@@ -134,6 +186,29 @@ describe('SessionManagement', () => {
     SessionManagement.removeTimers();
     expect(SessionManagement.timers.sessionTimerPassive).toBeUndefined();
     expect(SessionManagement.timers.refreshTimerPassive).toBeUndefined();
+  });
+
+  test('should return session data if session is valid', async () => {
+    const mockFetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ expirationTime: '2024-12-31T23:59:59Z' }),
+      })
+    );
+    global.fetch = mockFetch;
+  
+    const data = await SessionManagement.checkSessionStatus();
+  
+    expect(mockFetch).toHaveBeenCalledWith('api/tokens/self', { method: 'GET' });
+    expect(data).toEqual({ expirationTime: '2024-12-31T23:59:59Z' });
+  });
+  
+  test('should throw error if session status check fails', async () => {
+    const mockFetch = jest.fn(() => Promise.resolve({ ok: false }));
+    global.fetch = mockFetch;
+  
+    await expect(SessionManagement.checkSessionStatus()).rejects.toThrow('Failed to check session status');
+    expect(mockFetch).toHaveBeenCalledWith('api/tokens/self', { method: 'GET' });
   });
 
   describe('isSessionExpired', () => {
@@ -169,6 +244,17 @@ describe('SessionManagement', () => {
       const actual = SessionManagement.isSessionExpired(sessionExpiryTime);
       const expected = true;
       expect(actual).toEqual(expected);
+    });
+    test('should return true if sessionExpiryTime is very close to current time', () => {
+      const sessionExpiryTime = new Date().getTime() + 1; // 1 millisecond in the future
+      const actual = SessionManagement.isSessionExpired(sessionExpiryTime);
+      expect(actual).toEqual(true);
+    });
+    
+    test('should return true if sessionExpiryTime is exactly the current time', () => {
+      const sessionExpiryTime = new Date().getTime();
+      const actual = SessionManagement.isSessionExpired(sessionExpiryTime);
+      expect(actual).toEqual(true);
     });
   });
 });
