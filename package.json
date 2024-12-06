@@ -6,7 +6,8 @@
   "dependencies": {
     "@babel/eslint-parser": "^7.25.9",
     "@eslint/eslintrc": "^3.2.0",
-    "eslint-plugin-jest": "^28.9.0"
+    "eslint-plugin-jest": "^28.9.0",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.26.0",
