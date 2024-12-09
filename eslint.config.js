@@ -36,6 +36,7 @@ export default [
     },
     rules: {
       'no-underscore-dangle': 'off',
+      'max-len': ['error', { code: 120 }],
     },
   },
   {
@@ -48,6 +49,8 @@ export default [
     plugins: {
       jest,
     },
-    rules: {},
+    rules: {
+
+    },
   },
 ];

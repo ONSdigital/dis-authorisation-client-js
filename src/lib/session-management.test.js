@@ -64,7 +64,9 @@ describe('SessionManagement', () => {
     });
 
     test('should handle invalid session and call onSessionInvalid', async () => {
-      const mockFetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
+      const mockFetch = jest.fn(() => Promise.resolve({
+        ok: true, json: () => Promise.resolve({}),
+      }));
       global.fetch = mockFetch;
 
       mockConfig.checkSessionOnInit = true;
@@ -116,7 +118,9 @@ describe('SessionManagement', () => {
     test('should add event listeners when monitorInteraction is called', () => {
       SessionManagement.monitorInteraction();
 
-      expect(document.addEventListener).toHaveBeenCalledTimes(SessionManagement.eventsToMonitor.length);
+      expect(document.addEventListener).toHaveBeenCalledTimes(
+        SessionManagement.eventsToMonitor.length,
+      );
       SessionManagement.eventsToMonitor.forEach((event) => {
         expect(document.addEventListener).toHaveBeenCalledWith(event, SessionManagement.refreshSession);
       });
@@ -126,7 +130,9 @@ describe('SessionManagement', () => {
       SessionManagement.monitorInteraction();
       SessionManagement.removeInteractionMonitoring();
 
-      expect(document.removeEventListener).toHaveBeenCalledTimes(SessionManagement.eventsToMonitor.length);
+      expect(document.removeEventListener).toHaveBeenCalledTimes(
+        SessionManagement.eventsToMonitor.length,
+      );
       SessionManagement.eventsToMonitor.forEach((event) => {
         expect(document.removeEventListener).toHaveBeenCalledWith(event, SessionManagement.refreshSession);
       });
