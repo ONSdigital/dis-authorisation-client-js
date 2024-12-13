@@ -37,6 +37,14 @@ export default [
     rules: {
       'no-underscore-dangle': 'off',
       'max-len': ['error', { code: 120 }],
+      'import/extensions': [
+        'error',
+        'ignorePackages',
+        {
+          js: 'always',
+          jsx: 'always',
+        },
+      ],
     },
   },
   {
