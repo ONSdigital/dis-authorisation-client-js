@@ -1,16 +1,9 @@
 // session-management.test.js
 
 import SessionManagement from './session-management';
-import defaultConfig from '../config/config';
+import { defaultConfig, apiConfig } from '../config/config.js';
 
 jest.useFakeTimers();
-jest.mock('../config/config', () => ({
-  timeOffsets: {
-    passiveRenewal: 2000,
-    intrusiveRenewal: 1000,
-  },
-  checkSessionOnInit: false,
-}));
 
 describe('SessionManagement', () => {
   let mockConfig;
@@ -26,7 +19,6 @@ describe('SessionManagement', () => {
   });
 
   beforeEach(() => {
-    // Reset mocks before each test
     mockOnSessionValid = jest.fn();
     mockOnSessionInvalid = jest.fn();
     mockOnRenewSuccess = jest.fn();
@@ -45,7 +37,7 @@ describe('SessionManagement', () => {
       onRenewFailure: mockOnRenewFailure,
     };
 
-    SessionManagement.timers = {}; // Clear timers between tests
+    SessionManagement.timers = {};
   });
 
   describe('Initialisation', () => {
@@ -58,7 +50,7 @@ describe('SessionManagement', () => {
 
       mockConfig.checkSessionOnInit = true;
       await SessionManagement.init(mockConfig);
-      expect(mockFetch).toHaveBeenCalledWith('api/tokens/self', { method: 'GET' });
+      expect(mockFetch).toHaveBeenCalledWith(apiConfig.CHECK_SESSION, { method: 'GET' });
       expect(mockOnSessionValid).toHaveBeenCalledWith('2024-12-30T23:59:59Z');
       expect(SessionManagement.timers).toHaveProperty('sessionTimerPassive');
     });
@@ -72,7 +64,7 @@ describe('SessionManagement', () => {
       mockConfig.checkSessionOnInit = true;
       await SessionManagement.init(mockConfig);
 
-      expect(mockFetch).toHaveBeenCalledWith('api/tokens/self', { method: 'GET' });
+      expect(mockFetch).toHaveBeenCalledWith(apiConfig.CHECK_SESSION, { method: 'GET' });
       expect(mockOnSessionInvalid).toHaveBeenCalled();
       expect(SessionManagement.timers).toEqual({});
     });
@@ -149,10 +141,11 @@ describe('SessionManagement', () => {
 
       await SessionManagement.init(mockConfig);
       await SessionManagement.refreshSession();
-
-      expect(mockFetch).toHaveBeenCalledWith('api/tokens/self', {
+      expect(mockFetch).toHaveBeenCalledWith(apiConfig.RENEW_SESSION, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify(undefined),
       });
       expect(mockOnRenewSuccess).toHaveBeenCalled();
@@ -173,12 +166,12 @@ describe('SessionManagement', () => {
 
   describe('Session Expiry Check', () => {
     test('should return false if session time has not expired', () => {
-      const sessionExpiryTime = new Date().getTime() + 30 * 60 * 1000; // 30 minutes in the future
+      const sessionExpiryTime = new Date().getTime() + 30 * 60 * 1000; // 30 minutes
       expect(SessionManagement.isSessionExpired(sessionExpiryTime)).toBe(false);
     });
 
     test('should return true if session time has expired', () => {
-      const sessionExpiryTime = new Date().getTime() - 30 * 60 * 1000; // 30 minutes in the past
+      const sessionExpiryTime = new Date().getTime() - 30 * 60 * 1000; // 30 minutes
       expect(SessionManagement.isSessionExpired(sessionExpiryTime)).toBe(true);
     });
 
