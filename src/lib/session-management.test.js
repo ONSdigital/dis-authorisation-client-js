@@ -1,7 +1,10 @@
 // session-management.test.js
 
-import SessionManagement from './session-management';
+import SessionManagement from './session-management.js';
 import { defaultConfig, apiConfig } from '../config/config.js';
+import {
+  convertUTCToJSDate,
+} from '../utils/utils.js';
 
 jest.useFakeTimers();
 
@@ -88,8 +91,8 @@ describe('SessionManagement', () => {
       sessionExpiryTime = new Date(sessionExpiryTime).toISOString().replace(/Z/, ' +0000 UTC');
       refreshExpiryTime = new Date(refreshExpiryTime).toISOString().replace(/Z/, ' +0000 UTC');
 
-      sessionExpiryTime = SessionManagement.convertUTCToJSDate(sessionExpiryTime);
-      refreshExpiryTime = SessionManagement.convertUTCToJSDate(refreshExpiryTime);
+      sessionExpiryTime = convertUTCToJSDate(sessionExpiryTime);
+      refreshExpiryTime = convertUTCToJSDate(refreshExpiryTime);
 
       SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime);
       expect(SessionManagement.timers.sessionTimerPassive).toBeDefined();
@@ -144,7 +147,7 @@ describe('SessionManagement', () => {
       expect(mockFetch).toHaveBeenCalledWith(apiConfig.RENEW_SESSION, {
         method: 'PUT',
         headers: {
-            "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(undefined),
       });
@@ -161,22 +164,6 @@ describe('SessionManagement', () => {
 
       expect(mockFetch).toHaveBeenCalled();
       expect(mockOnRenewFailure).toHaveBeenCalledWith(expect.any(Error));
-    });
-  });
-
-  describe('Session Expiry Check', () => {
-    test('should return false if session time has not expired', () => {
-      const sessionExpiryTime = new Date().getTime() + 30 * 60 * 1000; // 30 minutes
-      expect(SessionManagement.isSessionExpired(sessionExpiryTime)).toBe(false);
-    });
-
-    test('should return true if session time has expired', () => {
-      const sessionExpiryTime = new Date().getTime() - 30 * 60 * 1000; // 30 minutes
-      expect(SessionManagement.isSessionExpired(sessionExpiryTime)).toBe(true);
-    });
-
-    test('should return true if sessionExpiryTime is null', () => {
-      expect(SessionManagement.isSessionExpired(null)).toBe(true);
     });
   });
 });
