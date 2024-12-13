@@ -1,14 +1,27 @@
-import fp from 'lodash/fp';
-import defaultConfig from '../config/config';
+import fp from 'lodash/fp.js';
+import { apiConfig, defaultConfig } from '../config/config.js';
 
-export default class SessionManagement {
-  static config = {};
+class SessionManagement {
+  static instance;
 
-  static timers = {};
+  constructor() {
+    if (SessionManagement.instance) {
+      return SessionManagement.instance;
+    }
 
-  static eventsToMonitor = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    this.config = {};
+    this.timers = {};
+    this.eventsToMonitor = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
 
-  static async init(config) {
+    // Bind methods to the instance
+    this.refreshSession = this.refreshSession.bind(this);
+    this.monitorInteraction = this.monitorInteraction.bind(this);
+    this.removeInteractionMonitoring = this.removeInteractionMonitoring.bind(this);
+
+    SessionManagement.instance = this;
+  }
+
+  async init(config) {
     if (!config || typeof config !== 'object') {
       throw new Error('[LIBRARY] Invalid configuration object');
     }
@@ -33,15 +46,17 @@ export default class SessionManagement {
     }
   }
 
-  static setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime) {
-    if (!this.config) {
-      this.init(this.config);
-    }
+  setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime) {
     console.log('[LIBRARY] Setting session expiry time');
     this.initialiseSessionExpiryTimers(sessionExpiryTime, refreshExpiryTime);
   }
 
-  static initialiseSessionExpiryTimers(sessionExpiryTime, refreshExpiryTime) {
+  initialiseSessionExpiryTimers(sessionExpiryTime, refreshExpiryTime) {
+    console.log('[LIBRARY] init config: ', this.config);
+    if (!this.config || Object.keys(this.config).length === 0) {
+      console.log('[LIBRARY] No config found, initialising with default config');
+      this.init(this.config);
+    }
     if (sessionExpiryTime) {
       console.log(`[LIBRARY] Session expiry time: ${sessionExpiryTime}`);
       this.startSessionTimer(sessionExpiryTime);
@@ -52,7 +67,7 @@ export default class SessionManagement {
     }
   }
 
-  static startSessionTimer(sessionExpiryTime) {
+  startSessionTimer(sessionExpiryTime) {
     this.startExpiryTimer(
       'sessionTimerPassive',
       sessionExpiryTime,
@@ -61,7 +76,7 @@ export default class SessionManagement {
     );
   }
 
-  static startRefreshTimer(refreshExpiryTime) {
+  startRefreshTimer(refreshExpiryTime) {
     this.startExpiryTimer(
       'refreshTimerPassive',
       refreshExpiryTime,
@@ -70,16 +85,16 @@ export default class SessionManagement {
     );
   }
 
-  static convertUTCToJSDate(expiryTime) {
+  convertUTCToJSDate(expiryTime) {
     if (expiryTime) {
       const expireTimeInUTCString = expiryTime.replace(' +0000 UTC', 'Z');
+      console.log('[LIBRARY] UTC to JS date: ', expireTimeInUTCString);
       return new Date(expireTimeInUTCString);
     }
     return null;
   }
 
-  static startExpiryTimer(name, expiryTime, offsetInMilliseconds, callback) {
-    console.log(`[LIBRARY] Setting timer for ${name}`);
+  startExpiryTimer(name, expiryTime, offsetInMilliseconds, callback) {
     console.log(`[LIBRARY] Expiry time for ${name}: ${expiryTime}`);
     if (expiryTime) {
       const now = new Date();
@@ -96,23 +111,22 @@ export default class SessionManagement {
     }
   }
 
-  static monitorInteraction = () => {
-    console.log('[LIBRARY] Monitoring user interaction');
+  monitorInteraction() {
     console.log('[LIBRARY] Event listeners added: ', this.eventsToMonitor);
 
     this.eventsToMonitor.forEach((name) => {
       document.addEventListener(name, this.refreshSession);
     });
-  };
+  }
 
-  static removeInteractionMonitoring = () => {
+  removeInteractionMonitoring() {
     console.log('[LIBRARY] Removing interaction monitoring');
     this.eventsToMonitor.forEach((name) => {
       document.removeEventListener(name, this.refreshSession);
     });
-  };
+  }
 
-  static refreshSession = async () => {
+  async refreshSession() {
     console.log('[LIBRARY] Refreshing session');
     this.removeInteractionMonitoring();
     const renewError = (error) => {
@@ -143,9 +157,9 @@ export default class SessionManagement {
     } catch (error) {
       renewError(error);
     }
-  };
+  }
 
-  static isSessionExpired(sessionExpiryTime) {
+  isSessionExpired(sessionExpiryTime) {
     if (sessionExpiryTime == null) {
       return true;
     }
@@ -163,17 +177,15 @@ export default class SessionManagement {
     if (Number.isNaN(diffInSeconds)) {
       throw new Error('encounted an error checking time interval: diffInSeconds is NaN');
     }
-    console.log('[IS SESSION EXPIRED] diff: ', diffInSeconds);
     if (diffInSeconds <= 0) {
       return true;
     }
     return false;
   }
 
-  static async renewSession(body) {
+  async renewSession(body) {
     console.log('[LIBRARY] Starting session renewal process');
-
-    const response = await fetch('api/tokens/self', {
+    const response = await fetch(apiConfig.RENEW_SESSION, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -194,9 +206,9 @@ export default class SessionManagement {
     return data;
   }
 
-  static checkSessionStatus = async () => {
+  async checkSessionStatus() {
     console.log('[LIBRARY] Checking initial session status');
-    const response = await fetch('api/tokens/self', { method: 'GET' });
+    const response = await fetch(apiConfig.CHECK_SESSION, { method: 'GET' });
 
     if (response.ok) {
       const data = await response.json();
@@ -206,7 +218,7 @@ export default class SessionManagement {
     throw new Error('Failed to check session status');
   };
 
-  static removeTimers = () => {
+  removeTimers() {
     this.removeInteractionMonitoring();
 
     Object.values(this.timers).forEach((timer) => {
@@ -214,5 +226,19 @@ export default class SessionManagement {
     });
 
     this.timers = {};
-  };
+  }
+
+  createDefaultExpireTimes(hours) {
+    console.log('[LIBRARY] Creating default expire times for', hours, 'hours');
+    const now = new Date();
+    const expiry = now.setHours(now.getHours() + hours);
+    return {
+      session_expiry_time: new Date(expiry),
+      refresh_expiry_time: new Date(expiry),
+    };
+  }
 }
+
+// Export a single instance of SessionManagement
+const sessionManagementInstance = new SessionManagement();
+export default sessionManagementInstance;
