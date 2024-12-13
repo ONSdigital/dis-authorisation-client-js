@@ -1,7 +1,7 @@
 #!/bin/bash -eux
 
 pushd dis-authorisation-client-js
-  npm ci --silent
+  npm ci
   make build
 
   # copy build to the location expected by the CI
