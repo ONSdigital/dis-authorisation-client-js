@@ -15,7 +15,7 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ['dist/**'],
+    ignores: ['dist/**', 'build/**'],
   },
   ...compat.extends('airbnb-base'),
   {
@@ -36,6 +36,15 @@ export default [
     },
     rules: {
       'no-underscore-dangle': 'off',
+      'max-len': ['error', { code: 120 }],
+      'import/extensions': [
+        'error',
+        'ignorePackages',
+        {
+          js: 'always',
+          jsx: 'always',
+        },
+      ],
     },
   },
   {
@@ -48,6 +57,8 @@ export default [
     plugins: {
       jest,
     },
-    rules: {},
+    rules: {
+
+    },
   },
 ];

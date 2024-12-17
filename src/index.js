@@ -1,11 +1,10 @@
-// TODO replace helloworld
+// src/index.js
+import SessionManagement from './lib/session-management.js';
+import {
+  createDefaultExpireTimes, checkSessionStatus, renewSession, isSessionExpired, convertUTCToJSDate,
+} from './utils/utils.js';
 
-class HelloWorld {
-  constructor(message) {
-    this.message = message;
-  }
-}
-
-const newHelloWorld = (message = 'Hello world!') => new HelloWorld(message);
-
-export default newHelloWorld;
+export {
+  createDefaultExpireTimes, checkSessionStatus, renewSession, isSessionExpired, convertUTCToJSDate,
+};
+export default SessionManagement;
