@@ -33,15 +33,17 @@ class LocalStorageMock {
 global.window = {};
 global.window.localStorage = new LocalStorageMock();
 
+global.document = {};
+
 jest.mock('./auth.js', () => ({
   getAuthState: jest.fn(),
 }));
 
 describe('Utils', () => {
   beforeEach(() => {
-    global.window = {};
-    global.window.localStorage = new LocalStorageMock();
-    global.document = {};
+    global.window.localStorage.clear();
+    getAuthState.mockClear();
+    jest.resetAllMocks();
   });
 
   describe('createDefaultExpireTimes', () => {
@@ -61,16 +63,6 @@ describe('Utils', () => {
   });
 
   describe('isSessionExpired', () => {
-    beforeAll(() => {
-      global.window = {};
-      global.window.localStorage = new LocalStorageMock();
-    });
-
-    beforeEach(() => {
-      global.window.localStorage.clear();
-      getAuthState.mockClear();
-    });
-
     test('should return false if session time has not expired', async () => {
       const sessionExpiryTime = new Date().getTime() + 30 * 60 * 1000; // 30 minutes in the future
       expect(await isSessionExpired(sessionExpiryTime)).toBe(false);
@@ -127,16 +119,6 @@ describe('Utils', () => {
   });
 
   describe('checkSessionStatus', () => {
-    beforeAll(() => {
-      global.window = {};
-      global.window.localStorage = new LocalStorageMock();
-    });
-
-    beforeEach(() => {
-      global.window.localStorage.clear();
-      getAuthState.mockClear();
-    });
-
     test('should return session expiry time from auth state', async () => {
       const mockSessionExpiryTime = new Date().getTime() + 3600 * 1000; // 1 hour in the future
       const mockRefreshExpiryTime = new Date().getTime() + 7200 * 1000; // 2 hours in the future
@@ -181,7 +163,7 @@ describe('Utils', () => {
 
     test('should return null if no session expiry time is found', async () => {
       getAuthState.mockReturnValue(null);
-      document.cookie = null;
+      document.cookie = '';
 
       const result = await checkSessionStatus();
       expect(result).toEqual({

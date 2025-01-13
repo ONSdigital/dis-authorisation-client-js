@@ -58,16 +58,15 @@ describe('SessionManagement', () => {
   });
 
   beforeEach(() => {
+    jest.resetAllMocks();
+
     mockOnSessionValid = jest.fn();
     mockOnSessionInvalid = jest.fn();
     mockOnRenewSuccess = jest.fn();
     mockOnRenewFailure = jest.fn();
 
-    global.document = {
-      ...global.document,
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-    };
+    global.document.addEventListener = jest.fn();
+    global.document.removeEventListener = jest.fn();
 
     mockConfig = {
       ...defaultConfig,

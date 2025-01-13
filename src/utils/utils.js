@@ -14,7 +14,6 @@ export function createDefaultExpireTimes(hours) {
 
 function getCookieByName(name) {
   console.log('[LIBRARY] Getting cookie by name:', name);
-  console.log('[LIBRARY] Cookies:', document.cookie);
   const cookies = document.cookie;
   if (!cookies) {
     return null;
@@ -37,9 +36,7 @@ export async function checkSessionStatus() {
   const accessToken = getCookieByName('access_token');
   if (accessToken) {
     try {
-      console.log('[LIBRARY] Decoding access token:', accessToken);
       const decodedToken = JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64').toString());
-      console.log('[LIBRARY] Decoded access token:', decodedToken);
       const expirationTime = new Date(decodedToken.exp * 1000);
       console.log('[LIBRARY] Initial session status from access token:', expirationTime);
       return { checkedSessionExpiryTime: expirationTime, checkedRefreshExpiryTime: refreshExpiryTime };
@@ -71,14 +68,11 @@ export async function renewSession(body) {
   }
 
   const data = await response.json();
-  console.log('[LIBRARY] Session renewed successfully, response data:', data);
-
   return data;
 }
 
 export async function isSessionExpired(expiryTime) {
   let sessionExpiryTime = expiryTime;
-  console.log('[IS SESSION EXPIRED] start sessionExpiryTime: ', sessionExpiryTime);
   if (sessionExpiryTime == null) {
     const { checkedSessionExpiryTime } = await checkSessionStatus();
     if (checkedSessionExpiryTime == null) {
@@ -86,17 +80,14 @@ export async function isSessionExpired(expiryTime) {
     }
     sessionExpiryTime = checkedSessionExpiryTime;
   }
-  console.log('[IS SESSION EXPIRED] sessionExpiryTime: ', sessionExpiryTime);
+
   const now = new Date();
   const nowUTCInMS = now.getTime() + now.getTimezoneOffset() * 60000;
   const nowInUTC = new Date(nowUTCInMS);
-  console.log('[IS SESSION EXPIRED] nowInUTC: ', nowInUTC);
-  console.log('[IS SESSION EXPIRED] sessionExpiryTime: ', new Date(sessionExpiryTime));
   // Get the time difference between now and the expiry time minus the timer offset
   const timerInterval = new Date(sessionExpiryTime) - nowInUTC;
-  console.log('[IS SESSION EXPIRED] timerInterval: ', timerInterval);
   const diffInSeconds = Math.round(timerInterval / 1000);
-  console.log('[IS SESSION EXPIRED] diff: ', diffInSeconds);
+
   if (Number.isNaN(diffInSeconds)) {
     throw new Error('encounted an error checking time interval: diffInSeconds is NaN');
   }
@@ -107,10 +98,8 @@ export async function isSessionExpired(expiryTime) {
 }
 
 export function convertUTCToJSDate(expiryTime) {
-  console.log('[LIBRARY] UTC to JS date: ', expiryTime);
   if (expiryTime) {
     const expireTimeInUTCString = expiryTime.replace(' +0000 UTC', 'Z');
-    console.log('[LIBRARY] UTC to JS date: ', expireTimeInUTCString);
     return new Date(expireTimeInUTCString);
   }
   return null;

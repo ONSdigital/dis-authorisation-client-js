@@ -55,10 +55,6 @@ class SessionManagement {
     try {
       console.log('[LIBRARY] Checking initial session state');
       const { checkedSessionExpiryTime, checkedRefreshExpiryTime } = await checkSessionStatus();
-      // if checkedSessionExpiryTime is not null, then the session is active,
-      // and replace sessionExpiryTime with checkedSessionExpiryTime
-      console.log('[LIBRARY] checkedSessionExpiryTime: ', checkedSessionExpiryTime);
-      console.log('[LIBRARY] checkedRefreshExpiryTime: ', checkedRefreshExpiryTime);
 
       const finalSessionExpiryTime = checkedSessionExpiryTime || sessionExpiryTime;
       const finalRefreshExpiryTime = checkedRefreshExpiryTime || refreshExpiryTime;
@@ -103,7 +99,6 @@ class SessionManagement {
     this.startExpiryTimer(
       'sessionTimerPassive',
       sessionExpiryTime,
-      this.config.timeOffsets.passiveRenewal,
       this.monitorInteraction,
     );
   }
@@ -113,19 +108,19 @@ class SessionManagement {
     this.startExpiryTimer(
       'refreshTimerPassive',
       refreshExpiryTime,
-      this.config.timeOffsets.passiveRenewal,
       this.monitorInteraction,
     );
   }
 
-  startExpiryTimer(name, expiryTime, offsetInMilliseconds, callback) {
+  startExpiryTimer(name, expiryTime, callback) {
     console.log(`[LIBRARY] Expiry time for ${name}: ${expiryTime}`);
     if (expiryTime) {
       const now = new Date();
-      const timerInterval = new Date(expiryTime) - now.getTime() - offsetInMilliseconds;
-      console.log(`[LIBRARY] Offset for ${name}: ${offsetInMilliseconds}`);
+      const timerInterval = new Date(expiryTime) - now.getTime() - this.config.timeOffsets.passiveRenewal;
+      console.log(`[LIBRARY] Offset for ${name}: ${this.config.timeOffsets.passiveRenewal}`);
       if (Number.isNaN(timerInterval)) {
         console.error(`[LIBRARY] time interval for ${name} is not a valid date format: ${timerInterval}`);
+        return;
       }
       if (this.timers[name] != null) {
         clearTimeout(this.timers[name]);
@@ -137,7 +132,6 @@ class SessionManagement {
 
   monitorInteraction() {
     console.log('[LIBRARY] Event listeners added: ', this.eventsToMonitor);
-
     this.eventsToMonitor.forEach((name) => {
       document.addEventListener(name, this.refreshSession);
     });
@@ -154,7 +148,7 @@ class SessionManagement {
     console.log('[LIBRARY] Refreshing session');
     this.removeInteractionMonitoring();
     const renewError = (error) => {
-      console.log("[LIBRARY] an unexpected error has occurred when extending the user's session: ".error);
+      console.log("[LIBRARY] an unexpected error has occurred when extending the user's session: ", error);
       if (error != null) {
         console.error(error);
         if (this.config.onRenewFailure) {
@@ -192,12 +186,10 @@ class SessionManagement {
 
   removeTimers() {
     this.removeInteractionMonitoring();
-
     Object.values(this.timers).forEach((timer) => {
       clearTimeout(timer);
     });
     removeAuthState();
-
     this.timers = {};
   }
 }
