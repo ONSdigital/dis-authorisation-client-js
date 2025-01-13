@@ -1,4 +1,6 @@
+import fp from 'lodash/fp.js';
 import { apiConfig } from '../config/config.js';
+import { getAuthState } from './auth.js';
 
 export function createDefaultExpireTimes(hours) {
   console.log('[LIBRARY] Creating default expire times for', hours, 'hours');
@@ -10,29 +12,65 @@ export function createDefaultExpireTimes(hours) {
   };
 }
 
+function getCookieByName(name) {
+  console.log('[LIBRARY] Getting cookie by name:', name);
+  console.log('[LIBRARY] Cookies:', document.cookie);
+  const cookies = document.cookie
+  if (!cookies) {
+    return null;
+  }
+  for (let cookie of cookies.split(';')) {
+    cookie = cookie.trim();
+    if (cookie.startsWith(`${name}=`)) {
+      return cookie.substring(name.length + 1);
+    }
+  }
+  return null;
+}
+
 export async function checkSessionStatus() {
   console.log('[LIBRARY] Checking initial session status');
-  const response = await fetch(apiConfig.CHECK_SESSION, { method: 'GET' });
+  const authState = getAuthState();
+  const sessionExpiryTime = fp.get('session_expiry_time')(authState);
+  const refreshExpiryTime = fp.get('refresh_expiry_time')(authState);
 
-  if (response.ok) {
-    const data = await response.json();
-    console.log('[LIBRARY] Initial session status:', data);
-    return data;
+  if (sessionExpiryTime) {
+    console.log('[LIBRARY] Initial session status:', sessionExpiryTime);
+    return {checkedSessionExpiryTime: sessionExpiryTime, checkedRefreshExpiryTime: refreshExpiryTime};
   }
-  throw new Error('Failed to check session status');
+  // Check cookie data for access token
+  const accessToken = getCookieByName('access_token');
+  if (accessToken) {
+    try {
+      console.log('[LIBRARY] Decoding access token:', accessToken);
+      const decodedToken = JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64').toString()); //jwtDecode(accessToken);
+      console.log('[LIBRARY] Decoded access token:', decodedToken);
+      const expirationTime = decodedToken.exp
+      console.log('[LIBRARY] Initial session status from access token:', expirationTime);
+      const sessionExpiryTime = new Date(expirationTime * 1000);
+      console.log('[LIBRARY] Initial session status from access token:', sessionExpiryTime);
+      return {checkedSessionExpiryTime: sessionExpiryTime, checkedRefreshExpiryTime: refreshExpiryTime};
+    } catch (error) {
+      console.error('[LIBRARY] Failed to decode access token:', error);
+      return {checkedSessionExpiryTime: null, checkedRefreshExpiryTime: null};
+    }
+  }
+
+  return { checkedSessionExpiryTime: null, checkedRefreshExpiryTime: null };
 }
 
 export async function renewSession(body) {
-  console.log('[LIBRARY] Starting session renewal process');
+  console.log('[LIBRARY] Starting session renewal process: ', body);
   const response = await fetch(apiConfig.RENEW_SESSION, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
+      "internal-token": "FD0108EA-825D-411C-9B1D-41EF7727F465",
     },
     body: JSON.stringify(body),
   });
 
-  console.log('[LIBRARY] Fetch request sent to /tokens/self: ', response);
+  console.log(`[LIBRARY] Fetch request sent to ${apiConfig.RENEW_SESSION}:`, response);
 
   if (!response.ok) {
     console.error('[LIBRARY] Failed to renew session, response status:', response.status);
@@ -45,9 +83,14 @@ export async function renewSession(body) {
   return data;
 }
 
-export function isSessionExpired(sessionExpiryTime) {
+export async function isSessionExpired(sessionExpiryTime) {
+  console.log('[IS SESSION EXPIRED] start sessionExpiryTime: ', sessionExpiryTime);
   if (sessionExpiryTime == null) {
-    return true;
+    const {checkedSessionExpiryTime} = await checkSessionStatus();
+    if(checkedSessionExpiryTime == null) {
+      return true;
+    }
+    sessionExpiryTime = checkedSessionExpiryTime;
   }
   console.log('[IS SESSION EXPIRED] sessionExpiryTime: ', sessionExpiryTime);
   const now = new Date();
@@ -70,6 +113,7 @@ export function isSessionExpired(sessionExpiryTime) {
 }
 
 export function convertUTCToJSDate(expiryTime) {
+  console.log('[LIBRARY] UTC to JS date: ', expiryTime);
   if (expiryTime) {
     const expireTimeInUTCString = expiryTime.replace(' +0000 UTC', 'Z');
     console.log('[LIBRARY] UTC to JS date: ', expireTimeInUTCString);
