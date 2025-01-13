@@ -4,16 +4,16 @@
   "description": "JS library for client side token renewal",
   "main": "src/index.js",
   "dependencies": {
-    "@babel/eslint-parser": "^7.25.9",
-    "@eslint/eslintrc": "^3.2.0",
-    "eslint-plugin-jest": "^28.9.0",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.25.9",
     "@babel/preset-env": "^7.26.0",
     "babel-jest": "^29.7.0",
     "esbuild": "^0.24.0",
     "eslint": "^8.57.1",
+    "@eslint/eslintrc": "^3.2.0",
+    "eslint-plugin-jest": "^28.9.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.31.0",
     "jest": "^29.7.0",

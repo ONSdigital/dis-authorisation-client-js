@@ -78,8 +78,7 @@ SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime);
 
 | Option               | Type     | Default Value                 | Description                                                                 |
 |----------------------|----------|-------------------------------|-----------------------------------------------------------------------------|
-| `RENEW_SESSION`      | String   | `/tokens/self`               | The API endpoint for renewing the session.                                  |
-| `CHECK_SESSION`      | String   | `/tokens/self`               | The API endpoint for checking the session status.                           |
+| `RENEW_SESSION`      | String   | `/tokens/self`               | The API endpoint for renewing the session.                                  |                      |
 
 
 ## Contributing

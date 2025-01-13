@@ -1,5 +1,3 @@
-// auth.test.js
-
 import {
   AUTH_STATE_NAME,
   setAuthState,
@@ -8,7 +6,6 @@ import {
   removeAuthState,
 } from './auth.js';
 
-// Mock localStorage
 class LocalStorageMock {
   constructor() {
     this.store = {};

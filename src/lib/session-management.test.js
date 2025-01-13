@@ -1,5 +1,3 @@
-// session-management.test.js
-
 import SessionManagement from './session-management.js';
 import { defaultConfig } from '../config/config.js';
 import {
@@ -21,7 +19,6 @@ jest.mock('../utils/utils.js', () => ({
   convertUTCToJSDate: jest.fn(),
 }));
 
-// Mock localStorage
 class LocalStorageMock {
   constructor() {
     this.store = {};

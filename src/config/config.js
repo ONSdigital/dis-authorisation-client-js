@@ -1,4 +1,3 @@
-// src/config/config.js
 export const defaultConfig = {
   timeOffsets: {
     passiveRenewal: 300000,
@@ -14,5 +13,4 @@ export const defaultConfig = {
 
 export const apiConfig = {
   RENEW_SESSION: '/tokens/self',
-  CHECK_SESSION: '/tokens/self',
 };

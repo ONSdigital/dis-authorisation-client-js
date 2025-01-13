@@ -1,4 +1,3 @@
-// utils.test.js
 import {
   createDefaultExpireTimes,
   checkSessionStatus,
@@ -9,7 +8,6 @@ import {
 import { getAuthState } from './auth.js';
 import { apiConfig } from '../config/config.js';
 
-// Mock localStorage
 class LocalStorageMock {
   constructor() {
     this.store = {};
@@ -34,12 +32,6 @@ class LocalStorageMock {
 
 global.window = {};
 global.window.localStorage = new LocalStorageMock();
-
-jest.mock('../config/config.js', () => ({
-  apiConfig: {
-    CHECK_SESSION: 'mock-check-session-url',
-  },
-}));
 
 jest.mock('./auth.js', () => ({
   getAuthState: jest.fn(),
@@ -72,17 +64,10 @@ describe('Utils', () => {
     beforeAll(() => {
       global.window = {};
       global.window.localStorage = new LocalStorageMock();
-
-      // global.document = {};
-      // Object.defineProperty(global.document, 'cookie', {
-      //   writable: true,
-      //   value: 'access_token=mockAccessToken',
-      // });
     });
 
     beforeEach(() => {
       global.window.localStorage.clear();
-      // global.document.cookie = 'access_token=mockAccessToken';
       getAuthState.mockClear();
     });
 
@@ -95,10 +80,6 @@ describe('Utils', () => {
       const sessionExpiryTime = new Date().getTime() - 30 * 60 * 1000; // 30 minutes in the past
       expect(await isSessionExpired(sessionExpiryTime)).toBe(true);
     });
-
-    // test('should return true if sessionExpiryTime is null', async () => {
-    //   expect(await isSessionExpired(null)).toBe(true);
-    // });
 
     test('should return true if sessionExpiryTime is null and checkSessionStatus returns null', async () => {
       getAuthState.mockReturnValue({ session_expiry_time: null });
