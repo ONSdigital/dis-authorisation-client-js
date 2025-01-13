@@ -51,44 +51,50 @@ class SessionManagement {
       console.log('[LIBRARY] No config found, initialising with default config');
       this.init(this.config);
     }
-  
+
     try {
       console.log('[LIBRARY] Checking initial session state');
       const { checkedSessionExpiryTime, checkedRefreshExpiryTime } = await checkSessionStatus();
-      // if checkedSessionExpiryTime is not null, then the session is active, and replace sessionEpxiryTime with checkedSessionExpiryTime
+      // if checkedSessionExpiryTime is not null, then the session is active,
+      // and replace sessionExpiryTime with checkedSessionExpiryTime
       console.log('[LIBRARY] checkedSessionExpiryTime: ', checkedSessionExpiryTime);
       console.log('[LIBRARY] checkedRefreshExpiryTime: ', checkedRefreshExpiryTime);
-      sessionExpiryTime = checkedSessionExpiryTime || sessionExpiryTime;
-      // TODO ?? should checkedRefreshExpiryTime only override refreshExpiryTime if it is null?
-      refreshExpiryTime = checkedRefreshExpiryTime || refreshExpiryTime;
-      console.log('[LIBRARY] sessionExpiryTime: ', sessionExpiryTime);
-      console.log('[LIBRARY] refreshExpiryTime: ', refreshExpiryTime);
-  
-      if (sessionExpiryTime) {
-        console.log(`[LIBRARY] Session expiry time: ${sessionExpiryTime}`);
-        this.startSessionTimer(sessionExpiryTime);
+
+      const finalSessionExpiryTime = checkedSessionExpiryTime || sessionExpiryTime;
+      const finalRefreshExpiryTime = checkedRefreshExpiryTime || refreshExpiryTime;
+
+      console.log('[LIBRARY] sessionExpiryTime: ', finalSessionExpiryTime);
+      console.log('[LIBRARY] refreshExpiryTime: ', finalRefreshExpiryTime);
+
+      if (finalSessionExpiryTime) {
+        console.log(`[LIBRARY] Session expiry time: ${finalSessionExpiryTime}`);
+        this.startSessionTimer(finalSessionExpiryTime);
       }
-      if (refreshExpiryTime) {
-        console.log(`[LIBRARY] Refresh expiry time: ${refreshExpiryTime}`);
-        this.startRefreshTimer(refreshExpiryTime);
+      if (finalRefreshExpiryTime) {
+        console.log(`[LIBRARY] Refresh expiry time: ${finalRefreshExpiryTime}`);
+        this.startRefreshTimer(finalRefreshExpiryTime);
       }
-      if(!sessionExpiryTime && !refreshExpiryTime) {
-        console.error('[LIBRARY] Failed to initialise session expiry timers:', error);
-        if (this.config.onSessionInvalid) {
-          this.config.onSessionInvalid();
-        }
+      if (!finalSessionExpiryTime && !finalRefreshExpiryTime) {
+        console.error('[LIBRARY] Failed to initialise session expiry timers: No expiry times provided');
+        this.handleSessionInvalid();
       } else {
-        console.log('[TEST] SESSION VALID');
-        if (this.config.onSessionValid) {
-          console.log("[TEST] SESSION VALID CALLBACK");
-          this.config.onSessionValid(sessionExpiryTime, refreshExpiryTime);
-        }
+        this.handleSessionValid(finalSessionExpiryTime, finalRefreshExpiryTime);
       }
     } catch (error) {
       console.error('[LIBRARY] Failed to initialise session expiry timers:', error);
-      if (this.config.onSessionInvalid) {
-        this.config.onSessionInvalid();
-      }
+      this.handleSessionInvalid();
+    }
+  }
+
+  handleSessionValid(sessionExpiryTime, refreshExpiryTime) {
+    if (this.config.onSessionValid) {
+      this.config.onSessionValid(sessionExpiryTime, refreshExpiryTime);
+    }
+  }
+
+  handleSessionInvalid() {
+    if (this.config.onSessionInvalid) {
+      this.config.onSessionInvalid();
     }
   }
 
@@ -148,7 +154,7 @@ class SessionManagement {
     console.log('[LIBRARY] Refreshing session');
     this.removeInteractionMonitoring();
     const renewError = (error) => {
-      console.log("[LIBRARY] an unexpected error has occurred when extending the user's session: ". error);
+      console.log("[LIBRARY] an unexpected error has occurred when extending the user's session: ".error);
       if (error != null) {
         console.error(error);
         if (this.config.onRenewFailure) {
@@ -156,12 +162,12 @@ class SessionManagement {
         }
       }
     };
-    console.log('[LIBRARY] Updating session timer via API 1');  
+    console.log('[LIBRARY] Updating session timer via API 1');
     try {
       const response = await renewSession();
       if (response) {
         console.log('[TEST] Session renewed successfully: ', response);
-        let expirationTime = fp.get('expirationTime')(response)
+        let expirationTime = fp.get('expirationTime')(response);
         console.log(
           '[LIBRARY] Session renewed successfully, new expiration time:',
           expirationTime,

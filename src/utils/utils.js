@@ -15,17 +15,12 @@ export function createDefaultExpireTimes(hours) {
 function getCookieByName(name) {
   console.log('[LIBRARY] Getting cookie by name:', name);
   console.log('[LIBRARY] Cookies:', document.cookie);
-  const cookies = document.cookie
+  const cookies = document.cookie;
   if (!cookies) {
     return null;
   }
-  for (let cookie of cookies.split(';')) {
-    cookie = cookie.trim();
-    if (cookie.startsWith(`${name}=`)) {
-      return cookie.substring(name.length + 1);
-    }
-  }
-  return null;
+  const cookie = cookies.split(';').map((c) => c.trim()).find((c) => c.startsWith(`${name}=`));
+  return cookie ? cookie.substring(name.length + 1) : null;
 }
 
 export async function checkSessionStatus() {
@@ -36,23 +31,21 @@ export async function checkSessionStatus() {
 
   if (sessionExpiryTime) {
     console.log('[LIBRARY] Initial session status:', sessionExpiryTime);
-    return {checkedSessionExpiryTime: sessionExpiryTime, checkedRefreshExpiryTime: refreshExpiryTime};
+    return { checkedSessionExpiryTime: sessionExpiryTime, checkedRefreshExpiryTime: refreshExpiryTime };
   }
   // Check cookie data for access token
   const accessToken = getCookieByName('access_token');
   if (accessToken) {
     try {
       console.log('[LIBRARY] Decoding access token:', accessToken);
-      const decodedToken = JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64').toString()); //jwtDecode(accessToken);
+      const decodedToken = JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64').toString());
       console.log('[LIBRARY] Decoded access token:', decodedToken);
-      const expirationTime = decodedToken.exp
+      const expirationTime = new Date(decodedToken.exp * 1000);
       console.log('[LIBRARY] Initial session status from access token:', expirationTime);
-      const sessionExpiryTime = new Date(expirationTime * 1000);
-      console.log('[LIBRARY] Initial session status from access token:', sessionExpiryTime);
-      return {checkedSessionExpiryTime: sessionExpiryTime, checkedRefreshExpiryTime: refreshExpiryTime};
+      return { checkedSessionExpiryTime: expirationTime, checkedRefreshExpiryTime: refreshExpiryTime };
     } catch (error) {
       console.error('[LIBRARY] Failed to decode access token:', error);
-      return {checkedSessionExpiryTime: null, checkedRefreshExpiryTime: null};
+      return { checkedSessionExpiryTime: null, checkedRefreshExpiryTime: null };
     }
   }
 
@@ -65,7 +58,7 @@ export async function renewSession(body) {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      "internal-token": "FD0108EA-825D-411C-9B1D-41EF7727F465",
+      'internal-token': 'FD0108EA-825D-411C-9B1D-41EF7727F465',
     },
     body: JSON.stringify(body),
   });
@@ -83,11 +76,12 @@ export async function renewSession(body) {
   return data;
 }
 
-export async function isSessionExpired(sessionExpiryTime) {
+export async function isSessionExpired(expiryTime) {
+  let sessionExpiryTime = expiryTime;
   console.log('[IS SESSION EXPIRED] start sessionExpiryTime: ', sessionExpiryTime);
   if (sessionExpiryTime == null) {
-    const {checkedSessionExpiryTime} = await checkSessionStatus();
-    if(checkedSessionExpiryTime == null) {
+    const { checkedSessionExpiryTime } = await checkSessionStatus();
+    if (checkedSessionExpiryTime == null) {
       return true;
     }
     sessionExpiryTime = checkedSessionExpiryTime;

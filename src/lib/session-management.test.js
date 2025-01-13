@@ -1,12 +1,11 @@
 // session-management.test.js
 
 import SessionManagement from './session-management.js';
-import { defaultConfig, apiConfig } from '../config/config.js';
+import { defaultConfig } from '../config/config.js';
 import {
   checkSessionStatus, renewSession, convertUTCToJSDate,
 } from '../utils/utils.js';
-import { getAuthState, updateAuthState, getCookieByName } from '../utils/auth.js';
-
+import { getAuthState } from '../utils/auth.js';
 
 jest.useFakeTimers();
 jest.mock('../utils/auth.js', () => ({
@@ -59,18 +58,6 @@ describe('SessionManagement', () => {
     };
     global.window = {};
     global.window.localStorage = new LocalStorageMock();
-
-    // global.document = {};
-
-    // Object.defineProperty(document, 'cookie', {
-    //   writable: true,
-    //   value: 'access_token=mockAccessToken',
-    // });
-
-    Object.defineProperty(global.document, 'cookie', {
-      writable: true,
-      value: 'access_token=eyJraWQiOiJqeFlva3pnVER5UVVNb1VTM0c0ODNoa0VjY3hFSklKdCtHVjAraHVSRUpBPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI5NmM2NDcxOS05YWFlLTQ3ZjktYjQ3Zi1lYjM5MzZhMzcxZmQiLCJjb2duaXRvOmdyb3VwcyI6WyJyb2xlLWFkbWluIiwicm9sZS1wdWJsaXNoZXIiXSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLmV1LXdlc3QtMi5hbWF6b25hd3MuY29tXC9ldS13ZXN0LTJfV1NEOUVjQXN3IiwiY2xpZW50X2lkIjoiNGV2bDkxZzR0czVpc211ZGhyY2JiNGRhb2MiLCJvcmlnaW5fanRpIjoiMWQ1N2UwMjAtYTgwMC00YWU0LWFiOTQtNTg2YzU5ZjRkMWQxIiwiZXZlbnRfaWQiOiJlMWYxMzM5My04MmJjLTQ3MzgtOWUxMy03MDg2ZGNiN2JjNDkiLCJ0b2tlbl91c2UiOiJhY2Nlc3MiLCJzY29wZSI6ImF3cy5jb2duaXRvLnNpZ25pbi51c2VyLmFkbWluIiwiYXV0aF90aW1lIjoxNzM0NjI2MjY4LCJleHAiOjE3MzQ2Mjk5MjYsImlhdCI6MTczNDYyOTAyNiwianRpIjoiMDYzODBmZWMtZTVmNi00ODA4LWIyYzktNjYyMzYxNzA3MmE5IiwidXNlcm5hbWUiOiJhZTAwOTliOC01OTFhLTQ0ZGUtYTllOS1kNjY4ZmU5YzRhZWIifQ.g8VxNWnB5AtcOg1w11hDhzb5a1kZQVIe5ADxtpb_Uqd2yKo_ibwlHUidgEzMu2ezYhrmwPa9ya6zb1hn0k5T0wZBBcv_CFHYBHj_L-yizQzPruc7grgbAVK5QouPM3-1anb5IcRq3sHbbazEGWZPIpBnY704yvI7oESaWg_mBTpMbinBZDaBXrHfrt0iodmUhzLuqbAdkXBfN3vQyfQC0xSX3g0S4_U2wOZTpvtakNMWv78eHXW4R8ktbpfKiuQqdzvGqksmio0JHb_PCrvSebUZjmiysROtSayihbjXqWSwY91JqN_UjC5iCu5F7h_Iz0Volr6u9kUrriJYT3DdFw',
-    });
   });
 
   beforeEach(() => {
@@ -104,11 +91,14 @@ describe('SessionManagement', () => {
       });
 
       SessionManagement.init(mockConfig);
-      await SessionManagement.initialiseSessionExpiryTimers(new Date('2024-12-19T17:00:00.000Z'), new Date('2024-12-20T17:00:00.000Z'))
-      
+      await SessionManagement.initialiseSessionExpiryTimers(
+        new Date('2024-12-19T17:00:00.000Z'),
+        new Date('2024-12-20T17:00:00.000Z'),
+      );
+
       expect(mockOnSessionValid).toHaveBeenCalledWith(
         new Date('2024-12-19T17:00:00.000Z'),
-        new Date('2024-12-20T17:00:00.000Z')
+        new Date('2024-12-20T17:00:00.000Z'),
       );
       expect(SessionManagement.timers).toHaveProperty('sessionTimerPassive');
     });
@@ -120,8 +110,8 @@ describe('SessionManagement', () => {
       });
 
       SessionManagement.init(mockConfig);
-      await SessionManagement.initialiseSessionExpiryTimers()
-      
+      await SessionManagement.initialiseSessionExpiryTimers();
+
       expect(mockOnSessionInvalid).toHaveBeenCalled();
       expect(SessionManagement.timers).toEqual({});
     });
@@ -139,17 +129,21 @@ describe('SessionManagement', () => {
   });
 
   describe('Timer Management', () => {
-    test('should not set timers if no sessionExpiryTime or refreshExpiryTime is provided and nothing returned from checkSessionStatus', async () => {
-      checkSessionStatus.mockResolvedValue({
-        checkedSessionExpiryTime: null,
-        checkedRefreshExpiryTime: null,
-      });
+    test(
+      'should not set timers if no sessionExpiryTime or refreshExpiryTime'
+      + 'is provided and nothing returned from checkSessionStatus',
+      async () => {
+        checkSessionStatus.mockResolvedValue({
+          checkedSessionExpiryTime: null,
+          checkedRefreshExpiryTime: null,
+        });
 
-      await SessionManagement.setSessionExpiryTime();
+        await SessionManagement.setSessionExpiryTime();
 
-      expect(SessionManagement.timers.sessionTimerPassive).toBeUndefined();
-      expect(SessionManagement.timers.refreshTimerPassive).toBeUndefined();
-    });
+        expect(SessionManagement.timers.sessionTimerPassive).toBeUndefined();
+        expect(SessionManagement.timers.refreshTimerPassive).toBeUndefined();
+      },
+    );
 
     test('should set session timers when valid sessionExpiryTime and refreshExpiryTime are provided', async () => {
       checkSessionStatus.mockResolvedValue({
@@ -157,9 +151,9 @@ describe('SessionManagement', () => {
         checkedRefreshExpiryTime: null,
       });
 
-      const sessionExpiryTime = new Date('2024-12-19T17:00:00.000Z')
-      const refreshExpiryTime = new Date('2024-12-20T17:00:00.000Z')
-      
+      const sessionExpiryTime = new Date('2024-12-19T17:00:00.000Z');
+      const refreshExpiryTime = new Date('2024-12-20T17:00:00.000Z');
+
       SessionManagement.init(mockConfig);
       await SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime);
 
@@ -168,7 +162,7 @@ describe('SessionManagement', () => {
 
       expect(mockOnSessionValid).toHaveBeenCalledWith(
         new Date('2024-12-19T17:00:00.000Z'),
-        new Date('2024-12-20T17:00:00.000Z')
+        new Date('2024-12-20T17:00:00.000Z'),
       );
     });
 
@@ -187,8 +181,8 @@ describe('SessionManagement', () => {
       const checkedRefreshExpiryTime = new Date('2024-12-22T17:00:00.000Z');
 
       checkSessionStatus.mockResolvedValue({
-        checkedSessionExpiryTime: checkedSessionExpiryTime,
-        checkedRefreshExpiryTime: checkedRefreshExpiryTime,
+        checkedSessionExpiryTime,
+        checkedRefreshExpiryTime,
       });
 
       await SessionManagement.setSessionExpiryTime();
@@ -205,19 +199,19 @@ describe('SessionManagement', () => {
       const checkedRefreshExpiryTime = new Date('2024-12-22T17:00:00.000Z');
 
       checkSessionStatus.mockResolvedValue({
-        checkedSessionExpiryTime: checkedSessionExpiryTime,
-        checkedRefreshExpiryTime: checkedRefreshExpiryTime,
+        checkedSessionExpiryTime,
+        checkedRefreshExpiryTime,
       });
 
       SessionManagement.init(mockConfig);
-      await SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime)
-      
+      await SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime);
+
       expect(SessionManagement.timers.sessionTimerPassive).toBeDefined();
       expect(SessionManagement.timers.refreshTimerPassive).toBeDefined();
 
       expect(mockOnSessionValid).toHaveBeenCalledWith(
         checkedSessionExpiryTime,
-        checkedRefreshExpiryTime
+        checkedRefreshExpiryTime,
       );
     });
   });
@@ -253,7 +247,7 @@ describe('SessionManagement', () => {
         expirationTime: '2024-12-30T13:00:00+0000 UTC',
       });
       convertUTCToJSDate.mockReturnValue(new Date('2024-12-30T13:00:00.000Z'));
-      getAuthState.mockReturnValue({refresh_expiry_time: new Date('2024-12-30T12:00:00.000Z') });
+      getAuthState.mockReturnValue({ refresh_expiry_time: new Date('2024-12-30T12:00:00.000Z') });
 
       checkSessionStatus.mockResolvedValue({
         checkedSessionExpiryTime: null,
@@ -266,7 +260,7 @@ describe('SessionManagement', () => {
       expect(renewSession).toHaveBeenCalled();
       expect(mockOnRenewSuccess).toHaveBeenCalledWith(
         new Date('2024-12-30T13:00:00.000Z'),
-        new Date('2024-12-30T12:00:00.000Z')
+        new Date('2024-12-30T12:00:00.000Z'),
       );
     });
 

@@ -1,5 +1,19 @@
 export const AUTH_STATE_NAME = 'ons_auth_state';
 
+/** Assumes user is authenticated if dis_auth_client_state exists in local storage */
+export function getAuthState() {
+  console.log('[STORAGE] Getting auth state');
+  let userData = window.localStorage.getItem(AUTH_STATE_NAME);
+  try {
+    userData = JSON.parse(userData);
+    console.log('[STORAGE] Auth state retrieved:', userData);
+  } catch (err) {
+    console.error('[STORAGE] Could not parse auth token from local storage:', err);
+    return undefined;
+  }
+  return userData;
+}
+
 export function setAuthState(userData = {}) {
   console.log('[STORAGE] Setting auth state');
   const authState = getAuthState() || {};
@@ -15,20 +29,6 @@ export function updateAuthState(data = {}) {
   const authStateJSON = JSON.stringify(authState);
   window.localStorage.setItem(AUTH_STATE_NAME, authStateJSON);
   console.log('[STORAGE] Auth state updated:', authStateJSON);
-}
-
-/** Assumes user is authenticated if dis_auth_client_state exists in local storage */
-export function getAuthState() {
-  console.log('[STORAGE] Getting auth state');
-  let userData = window.localStorage.getItem(AUTH_STATE_NAME);
-  try {
-    userData = JSON.parse(userData);
-    console.log('[STORAGE] Auth state retrieved:', userData);
-  } catch (err) {
-    console.error('[STORAGE] Could not parse auth token from local storage:', err);
-    return undefined;
-  }
-  return userData;
 }
 
 export function removeAuthState() {

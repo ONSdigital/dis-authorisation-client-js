@@ -5,7 +5,9 @@ export const defaultConfig = {
   },
   onRenewSuccess: () => console.log('[LIBRARY] Session renewed successfully'),
   onRenewFailure: () => console.warn('[LIBRARY] Session renewal failed'),
-  onSessionValid: (sessionExpiryTime, refreshExpiryTime) => console.log(`[LIBRARY] Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`),
+  onSessionValid: (sessionExpiryTime, refreshExpiryTime) => console.log(
+    `[LIBRARY] Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`,
+  ),
   onSessionInvalid: () => console.warn('[LIBRARY] Session is invalid'),
   onError: (error) => console.error('[LIBRARY] Error:', error),
 };

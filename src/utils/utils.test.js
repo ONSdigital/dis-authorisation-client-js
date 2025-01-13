@@ -50,11 +50,6 @@ describe('Utils', () => {
     global.window = {};
     global.window.localStorage = new LocalStorageMock();
     global.document = {};
-
-    Object.defineProperty(document, 'cookie', {
-      writable: true,
-      value: 'access_token=eyJraWQiOiJqeFlva3pnVER5UVVNb1VTM0c0ODNoa0VjY3hFSklKdCtHVjAraHVSRUpBPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI5NmM2NDcxOS05YWFlLTQ3ZjktYjQ3Zi1lYjM5MzZhMzcxZmQiLCJjb2duaXRvOmdyb3VwcyI6WyJyb2xlLWFkbWluIiwicm9sZS1wdWJsaXNoZXIiXSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLmV1LXdlc3QtMi5hbWF6b25hd3MuY29tXC9ldS13ZXN0LTJfV1NEOUVjQXN3IiwiY2xpZW50X2lkIjoiNGV2bDkxZzR0czVpc211ZGhyY2JiNGRhb2MiLCJvcmlnaW5fanRpIjoiMWQ1N2UwMjAtYTgwMC00YWU0LWFiOTQtNTg2YzU5ZjRkMWQxIiwiZXZlbnRfaWQiOiJlMWYxMzM5My04MmJjLTQ3MzgtOWUxMy03MDg2ZGNiN2JjNDkiLCJ0b2tlbl91c2UiOiJhY2Nlc3MiLCJzY29wZSI6ImF3cy5jb2duaXRvLnNpZ25pbi51c2VyLmFkbWluIiwiYXV0aF90aW1lIjoxNzM0NjI2MjY4LCJleHAiOjE3MzQ2Mjk5MjYsImlhdCI6MTczNDYyOTAyNiwianRpIjoiMDYzODBmZWMtZTVmNi00ODA4LWIyYzktNjYyMzYxNzA3MmE5IiwidXNlcm5hbWUiOiJhZTAwOTliOC01OTFhLTQ0ZGUtYTllOS1kNjY4ZmU5YzRhZWIifQ.g8VxNWnB5AtcOg1w11hDhzb5a1kZQVIe5ADxtpb_Uqd2yKo_ibwlHUidgEzMu2ezYhrmwPa9ya6zb1hn0k5T0wZBBcv_CFHYBHj_L-yizQzPruc7grgbAVK5QouPM3-1anb5IcRq3sHbbazEGWZPIpBnY704yvI7oESaWg_mBTpMbinBZDaBXrHfrt0iodmUhzLuqbAdkXBfN3vQyfQC0xSX3g0S4_U2wOZTpvtakNMWv78eHXW4R8ktbpfKiuQqdzvGqksmio0JHb_PCrvSebUZjmiysROtSayihbjXqWSwY91JqN_UjC5iCu5F7h_Iz0Volr6u9kUrriJYT3DdFw',
-    });
   });
 
   describe('createDefaultExpireTimes', () => {
@@ -77,14 +72,14 @@ describe('Utils', () => {
     beforeAll(() => {
       global.window = {};
       global.window.localStorage = new LocalStorageMock();
-  
+
       // global.document = {};
       // Object.defineProperty(global.document, 'cookie', {
       //   writable: true,
       //   value: 'access_token=mockAccessToken',
       // });
     });
-  
+
     beforeEach(() => {
       global.window.localStorage.clear();
       // global.document.cookie = 'access_token=mockAccessToken';
@@ -127,8 +122,10 @@ describe('Utils', () => {
 
     test('should throw an error if diffInSeconds is NaN', async () => {
       const sessionExpiryTime = 'invalid date';
-      
-      await expect(isSessionExpired(sessionExpiryTime)).rejects.toThrow('encounted an error checking time interval: diffInSeconds is NaN');
+
+      await expect(isSessionExpired(sessionExpiryTime)).rejects.toThrow(
+        'encounted an error checking time interval: diffInSeconds is NaN',
+      );
     });
   });
 
@@ -148,70 +145,70 @@ describe('Utils', () => {
     });
   });
 
-describe('checkSessionStatus', () => {
-  beforeAll(() => {
-    global.window = {};
-    global.window.localStorage = new LocalStorageMock();
-  });
-
-  beforeEach(() => {
-    global.window.localStorage.clear();
-    getAuthState.mockClear();
-  });
-
-  test('should return session expiry time from auth state', async () => {
-    const mockSessionExpiryTime = new Date().getTime() + 3600 * 1000; // 1 hour in the future
-    const mockRefreshExpiryTime = new Date().getTime() + 7200 * 1000; // 2 hours in the future
-    getAuthState.mockReturnValue({
-      session_expiry_time: mockSessionExpiryTime,
-      refresh_expiry_time: mockRefreshExpiryTime,
+  describe('checkSessionStatus', () => {
+    beforeAll(() => {
+      global.window = {};
+      global.window.localStorage = new LocalStorageMock();
     });
 
-    const result = await checkSessionStatus();
-    expect(result).toEqual({
-      checkedSessionExpiryTime: mockSessionExpiryTime,
-      checkedRefreshExpiryTime: mockRefreshExpiryTime,
+    beforeEach(() => {
+      global.window.localStorage.clear();
+      getAuthState.mockClear();
+    });
+
+    test('should return session expiry time from auth state', async () => {
+      const mockSessionExpiryTime = new Date().getTime() + 3600 * 1000; // 1 hour in the future
+      const mockRefreshExpiryTime = new Date().getTime() + 7200 * 1000; // 2 hours in the future
+      getAuthState.mockReturnValue({
+        session_expiry_time: mockSessionExpiryTime,
+        refresh_expiry_time: mockRefreshExpiryTime,
+      });
+
+      const result = await checkSessionStatus();
+      expect(result).toEqual({
+        checkedSessionExpiryTime: mockSessionExpiryTime,
+        checkedRefreshExpiryTime: mockRefreshExpiryTime,
+      });
+    });
+
+    test('should return session expiry time from access token in cookie', async () => {
+      const mockRefreshExpiryTime = new Date().getTime() + 7200 * 1000; // 2 hours in the future
+      getAuthState.mockReturnValue({
+        refresh_expiry_time: mockRefreshExpiryTime,
+      });
+      const mockDecodedToken = { exp: Math.floor(Date.now() / 1000) + 3600 }; // 1 hour in the future
+      const mockAccessToken = `header.${Buffer.from(JSON.stringify(mockDecodedToken)).toString('base64')}.signature`;
+      document.cookie = `access_token=${mockAccessToken}`;
+
+      const result = await checkSessionStatus();
+      expect(result).toEqual({
+        checkedSessionExpiryTime: new Date(mockDecodedToken.exp * 1000),
+        checkedRefreshExpiryTime: mockRefreshExpiryTime,
+      });
+    });
+
+    test('should return null if access token decoding fails', async () => {
+      getAuthState.mockReturnValue(null);
+      document.cookie = 'access_token=invalid-token';
+
+      const result = await checkSessionStatus();
+      expect(result).toEqual({
+        checkedSessionExpiryTime: null,
+        checkedRefreshExpiryTime: null,
+      });
+    });
+
+    test('should return null if no session expiry time is found', async () => {
+      getAuthState.mockReturnValue(null);
+      document.cookie = null;
+
+      const result = await checkSessionStatus();
+      expect(result).toEqual({
+        checkedSessionExpiryTime: null,
+        checkedRefreshExpiryTime: null,
+      });
     });
   });
-
-  test('should return session expiry time from access token in cookie', async () => {
-    const mockRefreshExpiryTime = new Date().getTime() + 7200 * 1000; // 2 hours in the future
-    getAuthState.mockReturnValue({
-      refresh_expiry_time: mockRefreshExpiryTime,
-    });
-    const mockDecodedToken = { exp: Math.floor(Date.now() / 1000) + 3600 }; // 1 hour in the future
-    const mockAccessToken = `header.${Buffer.from(JSON.stringify(mockDecodedToken)).toString('base64')}.signature`;
-    document.cookie = `access_token=${mockAccessToken}`;
-
-    const result = await checkSessionStatus();
-    expect(result).toEqual({
-      checkedSessionExpiryTime: new Date(mockDecodedToken.exp * 1000),
-      checkedRefreshExpiryTime: mockRefreshExpiryTime,
-    });
-  });
-
-  test('should return null if access token decoding fails', async () => {
-    getAuthState.mockReturnValue(null);
-    document.cookie = `access_token=invalid-token`;
-
-    const result = await checkSessionStatus();
-    expect(result).toEqual({
-      checkedSessionExpiryTime: null,
-      checkedRefreshExpiryTime: null,
-    });
-  });
-
-  test('should return null if no session expiry time is found', async () => {
-    getAuthState.mockReturnValue(null);
-    document.cookie = null;
-
-    const result = await checkSessionStatus();
-    expect(result).toEqual({
-      checkedSessionExpiryTime: null,
-      checkedRefreshExpiryTime: null,
-    });
-  });
-});
 
   describe('renewSession', () => {
     beforeEach(() => {
@@ -229,10 +226,10 @@ describe('checkSessionStatus', () => {
       const result = await renewSession(mockBody);
       expect(fetch).toHaveBeenCalledWith(apiConfig.RENEW_SESSION, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          "internal-token": "FD0108EA-825D-411C-9B1D-41EF7727F465",
-         },
+          'internal-token': 'FD0108EA-825D-411C-9B1D-41EF7727F465',
+        },
         body: JSON.stringify(mockBody),
       });
       expect(result).toEqual(mockResponse);
