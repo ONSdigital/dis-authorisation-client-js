@@ -1,4 +1,3 @@
-// eslint.config.js
 import { FlatCompat } from '@eslint/eslintrc';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -36,7 +35,7 @@ export default [
     },
     rules: {
       'no-underscore-dangle': 'off',
-      'max-len': ['error', { code: 120 }],
+      'max-len': ['error', { code: 140 }],
       'import/extensions': [
         'error',
         'ignorePackages',
@@ -45,6 +44,7 @@ export default [
           jsx: 'always',
         },
       ],
+      'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
     },
   },
   {
