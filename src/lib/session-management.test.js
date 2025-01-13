@@ -3,10 +3,47 @@
 import SessionManagement from './session-management.js';
 import { defaultConfig, apiConfig } from '../config/config.js';
 import {
-  convertUTCToJSDate,
+  checkSessionStatus, renewSession, convertUTCToJSDate,
 } from '../utils/utils.js';
+import { getAuthState, updateAuthState, getCookieByName } from '../utils/auth.js';
+
 
 jest.useFakeTimers();
+jest.mock('../utils/auth.js', () => ({
+  getAuthState: jest.fn(),
+  removeAuthState: jest.fn(),
+  updateAuthState: jest.fn(),
+  getCookieByName: jest.fn(),
+}));
+
+jest.mock('../utils/utils.js', () => ({
+  checkSessionStatus: jest.fn(),
+  renewSession: jest.fn(),
+  convertUTCToJSDate: jest.fn(),
+}));
+
+// Mock localStorage
+class LocalStorageMock {
+  constructor() {
+    this.store = {};
+  }
+
+  clear() {
+    this.store = {};
+  }
+
+  getItem(key) {
+    return this.store[key] || null;
+  }
+
+  setItem(key, value) {
+    this.store[key] = String(value);
+  }
+
+  removeItem(key) {
+    delete this.store[key];
+  }
+}
 
 describe('SessionManagement', () => {
   let mockConfig;
@@ -18,7 +55,22 @@ describe('SessionManagement', () => {
   beforeAll(() => {
     global.document = {
       dispatchEvent: jest.fn(),
+      cookie: '',
     };
+    global.window = {};
+    global.window.localStorage = new LocalStorageMock();
+
+    // global.document = {};
+
+    // Object.defineProperty(document, 'cookie', {
+    //   writable: true,
+    //   value: 'access_token=mockAccessToken',
+    // });
+
+    Object.defineProperty(global.document, 'cookie', {
+      writable: true,
+      value: 'access_token=eyJraWQiOiJqeFlva3pnVER5UVVNb1VTM0c0ODNoa0VjY3hFSklKdCtHVjAraHVSRUpBPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI5NmM2NDcxOS05YWFlLTQ3ZjktYjQ3Zi1lYjM5MzZhMzcxZmQiLCJjb2duaXRvOmdyb3VwcyI6WyJyb2xlLWFkbWluIiwicm9sZS1wdWJsaXNoZXIiXSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLmV1LXdlc3QtMi5hbWF6b25hd3MuY29tXC9ldS13ZXN0LTJfV1NEOUVjQXN3IiwiY2xpZW50X2lkIjoiNGV2bDkxZzR0czVpc211ZGhyY2JiNGRhb2MiLCJvcmlnaW5fanRpIjoiMWQ1N2UwMjAtYTgwMC00YWU0LWFiOTQtNTg2YzU5ZjRkMWQxIiwiZXZlbnRfaWQiOiJlMWYxMzM5My04MmJjLTQ3MzgtOWUxMy03MDg2ZGNiN2JjNDkiLCJ0b2tlbl91c2UiOiJhY2Nlc3MiLCJzY29wZSI6ImF3cy5jb2duaXRvLnNpZ25pbi51c2VyLmFkbWluIiwiYXV0aF90aW1lIjoxNzM0NjI2MjY4LCJleHAiOjE3MzQ2Mjk5MjYsImlhdCI6MTczNDYyOTAyNiwianRpIjoiMDYzODBmZWMtZTVmNi00ODA4LWIyYzktNjYyMzYxNzA3MmE5IiwidXNlcm5hbWUiOiJhZTAwOTliOC01OTFhLTQ0ZGUtYTllOS1kNjY4ZmU5YzRhZWIifQ.g8VxNWnB5AtcOg1w11hDhzb5a1kZQVIe5ADxtpb_Uqd2yKo_ibwlHUidgEzMu2ezYhrmwPa9ya6zb1hn0k5T0wZBBcv_CFHYBHj_L-yizQzPruc7grgbAVK5QouPM3-1anb5IcRq3sHbbazEGWZPIpBnY704yvI7oESaWg_mBTpMbinBZDaBXrHfrt0iodmUhzLuqbAdkXBfN3vQyfQC0xSX3g0S4_U2wOZTpvtakNMWv78eHXW4R8ktbpfKiuQqdzvGqksmio0JHb_PCrvSebUZjmiysROtSayihbjXqWSwY91JqN_UjC5iCu5F7h_Iz0Volr6u9kUrriJYT3DdFw',
+    });
   });
 
   beforeEach(() => {
@@ -28,6 +80,7 @@ describe('SessionManagement', () => {
     mockOnRenewFailure = jest.fn();
 
     global.document = {
+      ...global.document,
       addEventListener: jest.fn(),
       removeEventListener: jest.fn(),
     };
@@ -45,58 +98,78 @@ describe('SessionManagement', () => {
 
   describe('Initialisation', () => {
     test('should initialise with a valid session and call onSessionValid', async () => {
-      const mockFetch = jest.fn(() => Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ expirationTime: '2024-12-30T23:59:59Z' }),
-      }));
-      global.fetch = mockFetch;
+      checkSessionStatus.mockResolvedValue({
+        checkedSessionExpiryTime: null,
+        checkedRefreshExpiryTime: null,
+      });
 
-      mockConfig.checkSessionOnInit = true;
-      await SessionManagement.init(mockConfig);
-      expect(mockFetch).toHaveBeenCalledWith(apiConfig.CHECK_SESSION, { method: 'GET' });
-      expect(mockOnSessionValid).toHaveBeenCalledWith('2024-12-30T23:59:59Z');
+      SessionManagement.init(mockConfig);
+      await SessionManagement.initialiseSessionExpiryTimers(new Date('2024-12-19T17:00:00.000Z'), new Date('2024-12-20T17:00:00.000Z'))
+      
+      expect(mockOnSessionValid).toHaveBeenCalledWith(
+        new Date('2024-12-19T17:00:00.000Z'),
+        new Date('2024-12-20T17:00:00.000Z')
+      );
       expect(SessionManagement.timers).toHaveProperty('sessionTimerPassive');
     });
 
     test('should handle invalid session and call onSessionInvalid', async () => {
-      const mockFetch = jest.fn(() => Promise.resolve({
-        ok: true, json: () => Promise.resolve({}),
-      }));
-      global.fetch = mockFetch;
+      checkSessionStatus.mockResolvedValue({
+        checkedSessionExpiryTime: null,
+        checkedRefreshExpiryTime: null,
+      });
 
-      mockConfig.checkSessionOnInit = true;
-      await SessionManagement.init(mockConfig);
-
-      expect(mockFetch).toHaveBeenCalledWith(apiConfig.CHECK_SESSION, { method: 'GET' });
+      SessionManagement.init(mockConfig);
+      await SessionManagement.initialiseSessionExpiryTimers()
+      
       expect(mockOnSessionInvalid).toHaveBeenCalled();
       expect(SessionManagement.timers).toEqual({});
     });
 
-    test('should throw an error if invalid config is provided to init', async () => {
-      await expect(SessionManagement.init(null)).rejects.toThrow('[LIBRARY] Invalid configuration object');
+    test('should initialise with a valid config', () => {
+      SessionManagement.init(mockConfig);
+      expect(SessionManagement.config).toEqual(Object.freeze({ ...defaultConfig, ...mockConfig }));
+    });
+
+    test('should throw an error if invalid config is provided to init', () => {
+      expect(() => {
+        SessionManagement.init(null);
+      }).toThrow('[LIBRARY] Invalid configuration object');
     });
   });
 
   describe('Timer Management', () => {
-    test('should not set timers if no sessionExpiryTime or refreshExpiryTime is provided', () => {
-      SessionManagement.setSessionExpiryTime();
+    test('should not set timers if no sessionExpiryTime or refreshExpiryTime is provided and nothing returned from checkSessionStatus', async () => {
+      checkSessionStatus.mockResolvedValue({
+        checkedSessionExpiryTime: null,
+        checkedRefreshExpiryTime: null,
+      });
+
+      await SessionManagement.setSessionExpiryTime();
 
       expect(SessionManagement.timers.sessionTimerPassive).toBeUndefined();
       expect(SessionManagement.timers.refreshTimerPassive).toBeUndefined();
     });
 
-    test('should set session timers when valid sessionExpiryTime and refreshExpiryTime are provided', () => {
-      let sessionExpiryTime = new Date().setHours(new Date().getHours() + 1);
-      let refreshExpiryTime = new Date().setHours(new Date().getHours() + 24);
-      sessionExpiryTime = new Date(sessionExpiryTime).toISOString().replace(/Z/, ' +0000 UTC');
-      refreshExpiryTime = new Date(refreshExpiryTime).toISOString().replace(/Z/, ' +0000 UTC');
+    test('should set session timers when valid sessionExpiryTime and refreshExpiryTime are provided', async () => {
+      checkSessionStatus.mockResolvedValue({
+        checkedSessionExpiryTime: null,
+        checkedRefreshExpiryTime: null,
+      });
 
-      sessionExpiryTime = convertUTCToJSDate(sessionExpiryTime);
-      refreshExpiryTime = convertUTCToJSDate(refreshExpiryTime);
+      const sessionExpiryTime = new Date('2024-12-19T17:00:00.000Z')
+      const refreshExpiryTime = new Date('2024-12-20T17:00:00.000Z')
+      
+      SessionManagement.init(mockConfig);
+      await SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime);
 
-      SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime);
       expect(SessionManagement.timers.sessionTimerPassive).toBeDefined();
       expect(SessionManagement.timers.refreshTimerPassive).toBeDefined();
+
+      expect(mockOnSessionValid).toHaveBeenCalledWith(
+        new Date('2024-12-19T17:00:00.000Z'),
+        new Date('2024-12-20T17:00:00.000Z')
+      );
     });
 
     test('should remove all timers when removeTimers is called', () => {
@@ -104,8 +177,48 @@ describe('SessionManagement', () => {
       SessionManagement.timers.refreshTimerPassive = setTimeout(() => {}, 100000);
 
       SessionManagement.removeTimers();
+
       expect(SessionManagement.timers.sessionTimerPassive).toBeUndefined();
       expect(SessionManagement.timers.refreshTimerPassive).toBeUndefined();
+    });
+
+    test('should set timers based on checkSessionStatus when no setSessionExpiryTime is provided', async () => {
+      const checkedSessionExpiryTime = new Date('2024-12-21T17:00:00.000Z');
+      const checkedRefreshExpiryTime = new Date('2024-12-22T17:00:00.000Z');
+
+      checkSessionStatus.mockResolvedValue({
+        checkedSessionExpiryTime: checkedSessionExpiryTime,
+        checkedRefreshExpiryTime: checkedRefreshExpiryTime,
+      });
+
+      await SessionManagement.setSessionExpiryTime();
+
+      expect(SessionManagement.timers.sessionTimerPassive).toBeDefined();
+      expect(SessionManagement.timers.refreshTimerPassive).toBeDefined();
+    });
+
+    test('should override setSessionExpiryTime with checkSessionStatus values', async () => {
+      const sessionExpiryTime = new Date('2024-12-19T17:00:00.000Z');
+      const refreshExpiryTime = new Date('2024-12-20T17:00:00.000Z');
+
+      const checkedSessionExpiryTime = new Date('2024-12-21T17:00:00.000Z');
+      const checkedRefreshExpiryTime = new Date('2024-12-22T17:00:00.000Z');
+
+      checkSessionStatus.mockResolvedValue({
+        checkedSessionExpiryTime: checkedSessionExpiryTime,
+        checkedRefreshExpiryTime: checkedRefreshExpiryTime,
+      });
+
+      SessionManagement.init(mockConfig);
+      await SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime)
+      
+      expect(SessionManagement.timers.sessionTimerPassive).toBeDefined();
+      expect(SessionManagement.timers.refreshTimerPassive).toBeDefined();
+
+      expect(mockOnSessionValid).toHaveBeenCalledWith(
+        checkedSessionExpiryTime,
+        checkedRefreshExpiryTime
+      );
     });
   });
 
@@ -136,34 +249,46 @@ describe('SessionManagement', () => {
 
   describe('Session Renewal', () => {
     test('should handle successful session renewal and call onRenewSuccess', async () => {
-      const mockFetch = jest.fn(() => Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ expirationTime: '2024-12-31T23:59:59.000Z' }),
-      }));
-      global.fetch = mockFetch;
-
-      await SessionManagement.init(mockConfig);
-      await SessionManagement.refreshSession();
-      expect(mockFetch).toHaveBeenCalledWith(apiConfig.RENEW_SESSION, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(undefined),
+      renewSession.mockResolvedValue({
+        expirationTime: '2024-12-30T13:00:00+0000 UTC',
       });
-      expect(mockOnRenewSuccess).toHaveBeenCalled();
-      expect(mockOnRenewSuccess).toHaveBeenCalledWith(new Date('2024-12-31T23:59:59.000Z'));
+      convertUTCToJSDate.mockReturnValue(new Date('2024-12-30T13:00:00.000Z'));
+      getAuthState.mockReturnValue({refresh_expiry_time: new Date('2024-12-30T12:00:00.000Z') });
+
+      checkSessionStatus.mockResolvedValue({
+        checkedSessionExpiryTime: null,
+        checkedRefreshExpiryTime: null,
+      });
+
+      SessionManagement.init(mockConfig);
+      await SessionManagement.refreshSession();
+
+      expect(renewSession).toHaveBeenCalled();
+      expect(mockOnRenewSuccess).toHaveBeenCalledWith(
+        new Date('2024-12-30T13:00:00.000Z'),
+        new Date('2024-12-30T12:00:00.000Z')
+      );
     });
 
     test('should call onRenewFailure when session renewal fails', async () => {
-      const mockFetch = jest.fn(() => Promise.resolve({ ok: false, status: 500 }));
-      global.fetch = mockFetch;
+      renewSession.mockResolvedValue(null);
 
-      await SessionManagement.init(mockConfig);
+      SessionManagement.init(mockConfig);
       await SessionManagement.refreshSession();
 
-      expect(mockFetch).toHaveBeenCalled();
-      expect(mockOnRenewFailure).toHaveBeenCalledWith(expect.any(Error));
+      expect(renewSession).toHaveBeenCalled();
+      expect(mockOnRenewFailure).toHaveBeenCalled();
+    });
+
+    test('should handle errors in the try-catch block and call onRenewFailure', async () => {
+      const error = new Error('Session renewal failed');
+      renewSession.mockRejectedValue(error);
+
+      SessionManagement.init(mockConfig);
+      await SessionManagement.refreshSession();
+
+      expect(renewSession).toHaveBeenCalled();
+      expect(mockOnRenewFailure).toHaveBeenCalledWith(error);
     });
   });
 });
