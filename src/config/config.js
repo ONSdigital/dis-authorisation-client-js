@@ -2,7 +2,6 @@ export const defaultConfig = {
   timeOffsets: {
     passiveRenewal: 300000,
   },
-  onRenewSuccess: () => console.log('[LIBRARY] Session renewed successfully'),
   onRenewSuccess: (sessionExpiryTime, refreshExpiryTime) => console.log(
     `[LIBRARY] Session renewed successfully. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`,
   ),
