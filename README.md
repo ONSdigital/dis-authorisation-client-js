@@ -38,7 +38,7 @@ JS library for client side token renewal
   SessionManagement.init(config);
   ```
 
-2. Setting Session Expiry Times
+2. Setting Session Expiry Times.
   You can set the session and refresh expiry times either by creating default expiry times using `createDefaultExpireTimes` or by setting them directly.
   If init has not been called yet, the library will automatically initialise with default settings.
 
