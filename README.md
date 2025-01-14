@@ -8,69 +8,68 @@ JS library for client side token renewal
 
 ## Usage
 
-1. Initialising with Custom Configuration
-You can call `init` with a custom config, this allows you to specify callbacks and settings:
+1. Initialising with custom configuration.
+  You can call `init` with a custom config, this allows you to specify callbacks and settings:
 
-```
-import SessionManagement from 'dis-authorisation-client-js';
+  ```
+  import SessionManagement from 'dis-authorisation-client-js';
 
-// Define configuration
-const config = {
-  timeOffsets: { passiveRenewal: 300000 }, // Session renewal offset: 5 minutes
-  checkSessionOnInit: true, // Check session status on initialisation
-  onRenewSuccess: (sessionExpiryTime, refreshExpiryTime) => {
-    console.log(`[APP] Session renewed successfully! Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`);
-  },
-  onRenewFailure: (error) => {
-    console.error('[APP] Session renewal failed:', error);
-  },
-  onSessionValid: (sessionExpiryTime, refreshExpiryTime) => {
-    console.log(`[APP] Session is valid. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`);
-  },
-  onSessionInvalid: () => {
-    console.warn('[APP] Session is invalid.');
-  },
-  onError: (error) => {
-    console.error('[APP] Error:', error);
-  },
-};
+  // Define configuration
+  const config = {
+    timeOffsets: { passiveRenewal: 300000 }, // Session renewal offset: 5 minutes
+    onRenewSuccess: (sessionExpiryTime, refreshExpiryTime) => {
+      console.log(`[APP] Session renewed successfully! Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`);
+    },
+    onRenewFailure: (error) => {
+      console.error('[APP] Session renewal failed:', error);
+    },
+    onSessionValid: (sessionExpiryTime, refreshExpiryTime) => {
+      console.log(`[APP] Session is valid. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`);
+    },
+    onSessionInvalid: () => {
+      console.warn('[APP] Session is invalid.');
+    },
+    onError: (error) => {
+      console.error('[APP] Error:', error);
+    },
+  };
 
-// Initialise the SessionManagement library
-SessionManagement.init(config);
-```
+  // Initialise the SessionManagement library
+  SessionManagement.init(config);
+  ```
 
 2. Setting Session Expiry Times
-You can set the session and refresh expiry times either by creating default expiry times using `createDefaultExpireTimes` or by setting them directly.
-If init has not been called yet, the library will automatically initialise with default settings.
+  You can set the session and refresh expiry times either by creating default expiry times using `createDefaultExpireTimes` or by setting them directly.
+  If init has not been called yet, the library will automatically initialise with default settings.
 
-#### Using `createDefaultExpireTimes`
+  #### Using `createDefaultExpireTimes`
 
-You can create default expiry times for session and refresh using `createDefaultExpireTimes`:
+  You can create default expiry times for session and refresh using `createDefaultExpireTimes`:
 
-```
-import SessionManagement, { createDefaultExpireTimes } from 'dis-authorisation-client-js';
+  ```
+  import SessionManagement, { createDefaultExpireTimes } from 'dis-authorisation-client-js';
 
-// Create default expiry times
-const { session_expiry_time, refresh_expiry_time } = createDefaultExpireTimes(12); // 12 hours
+  // Create default expiry times
+  const { session_expiry_time, refresh_expiry_time } = createDefaultExpireTimes(12); // 12 hours
 
-// Set the expiry timers
-SessionManagement.setSessionExpiryTime(session_expiry_time, refresh_expiry_time);
-```
+  // Set the expiry timers
+  SessionManagement.setSessionExpiryTime(session_expiry_time, refresh_expiry_time);
+  ```
 
-#### Setting Expiry Times Directly
+  #### Setting Expiry Times Directly
 
-You can manually set the session and refresh expiry times using `setSessionExpiryTime`.
+  You can manually set the session and refresh expiry times using `setSessionExpiryTime`.
 
-```
-import SessionManagement from 'dis-authorisation-client-js';
+  ```
+  import SessionManagement from 'dis-authorisation-client-js';
 
-// Define session and refresh expiry times
-const sessionExpiryTime = new Date(new Date().getTime() + 60 * 60 * 1000); // 1 hour from now
-const refreshExpiryTime = new Date(new Date().getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
+  // Define session and refresh expiry times
+  const sessionExpiryTime = new Date(new Date().getTime() + 60 * 60 * 1000); // 1 hour from now
+  const refreshExpiryTime = new Date(new Date().getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
 
-// Set the expiry timers
-SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime);
-```
+  // Set the expiry timers
+  SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime);
+  ```
 
 ### Note
 
@@ -107,12 +106,10 @@ async function renewSession() {
 | Option              | Type     | Default Value | Description                                                                 |
 |---------------------|----------|---------------|-----------------------------------------------------------------------------|
 | `timeOffsets`       | Object   | `{ passiveRenewal: 300000 }` | Time offsets for session renewal in milliseconds.                           |
-| `onRenewSuccess`    | Function | `() => console.log('[LIBRARY] Session renewed successfully')` | Callback function to be called on successful session renewal.               |
+| `onRenewSuccess`    | Function | `(sessionExpiryTime, refreshExpiryTime) => console.log('[LIBRARY] Session renewed successfully. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}')` | Callback function to be called on successful session renewal.               |
 | `onRenewFailure`    | Function | `() => console.warn('[LIBRARY] Session renewal failed')` | Callback function to be called on session renewal failure.                  |
-| `onSessionValid`    | Function | `(sessionExpiryTime) => console.log('[LIBRARY] Session valid until: ${sessionExpiryTime}')` | Callback function to be called when the session is valid.                   |
+| `onSessionValid`    | Function | `(sessionExpiryTime, refreshExpiryTime) => console.log('[LIBRARY] Session Valid. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}')` | Callback function to be called when the session is valid.                   |
 | `onSessionInvalid`  | Function | `() => console.warn('[LIBRARY] Session is invalid')` | Callback function to be called when the session is invalid.                 |
-| `onError`           | Function | `(error) => console.error('[LIBRARY] Error:', error)` | Callback function to be called on error.                                    |
-| `checkSessionOnInit`| Boolean  | `false`        | Whether to check the session status on initialization.                      |
 
 ### apiConfig
 
