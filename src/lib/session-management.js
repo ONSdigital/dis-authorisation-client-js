@@ -156,11 +156,9 @@ class SessionManagement {
         }
       }
     };
-    console.log('[LIBRARY] Updating session timer via API 1');
     try {
       const response = await renewSession();
       if (response) {
-        console.log('[TEST] Session renewed successfully: ', response);
         let expirationTime = fp.get('expirationTime')(response);
         console.log(
           '[LIBRARY] Session renewed successfully, new expiration time:',
