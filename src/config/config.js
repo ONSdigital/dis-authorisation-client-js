@@ -3,9 +3,12 @@ export const defaultConfig = {
     passiveRenewal: 300000,
   },
   onRenewSuccess: () => console.log('[LIBRARY] Session renewed successfully'),
+  onRenewSuccess: (sessionExpiryTime, refreshExpiryTime) => console.log(
+    `[LIBRARY] Session renewed successfully. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`,
+  ),
   onRenewFailure: () => console.warn('[LIBRARY] Session renewal failed'),
   onSessionValid: (sessionExpiryTime, refreshExpiryTime) => console.log(
-    `[LIBRARY] Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`,
+    `[LIBRARY] Session Valid. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`,
   ),
   onSessionInvalid: () => console.warn('[LIBRARY] Session is invalid'),
   onError: (error) => console.error('[LIBRARY] Error:', error),
