@@ -8,11 +8,61 @@ JS library for client side token renewal
 
 ## Usage
 
-1. Setting Session Expiry Time Directly (Without Configuration)
-You can manually set the session and refresh expiry times using `setSessionExpiryTime`. If `init` has not been called yet, the library will automatically initialise with default settings:
+1. Initialising with Custom Configuration
+You can call `init` with a custom config, this allows you to specify callbacks and settings:
 
 ```
-import SessionManagement from 'session-management-library';
+import SessionManagement from 'dis-authorisation-client-js';
+
+// Define configuration
+const config = {
+  timeOffsets: { passiveRenewal: 300000 }, // Session renewal offset: 5 minutes
+  checkSessionOnInit: true, // Check session status on initialisation
+  onRenewSuccess: (sessionExpiryTime, refreshExpiryTime) => {
+    console.log(`[APP] Session renewed successfully! Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`);
+  },
+  onRenewFailure: (error) => {
+    console.error('[APP] Session renewal failed:', error);
+  },
+  onSessionValid: (sessionExpiryTime, refreshExpiryTime) => {
+    console.log(`[APP] Session is valid. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`);
+  },
+  onSessionInvalid: () => {
+    console.warn('[APP] Session is invalid.');
+  },
+  onError: (error) => {
+    console.error('[APP] Error:', error);
+  },
+};
+
+// Initialise the SessionManagement library
+SessionManagement.init(config);
+```
+
+2. Setting Session Expiry Times
+You can set the session and refresh expiry times either by creating default expiry times using `createDefaultExpireTimes` or by setting them directly.
+If init has not been called yet, the library will automatically initialise with default settings.
+
+#### Using `createDefaultExpireTimes`
+
+You can create default expiry times for session and refresh using `createDefaultExpireTimes`:
+
+```
+import SessionManagement, { createDefaultExpireTimes } from 'dis-authorisation-client-js';
+
+// Create default expiry times
+const { session_expiry_time, refresh_expiry_time } = createDefaultExpireTimes(12); // 12 hours
+
+// Set the expiry timers
+SessionManagement.setSessionExpiryTime(session_expiry_time, refresh_expiry_time);
+```
+
+#### Setting Expiry Times Directly
+
+You can manually set the session and refresh expiry times using `setSessionExpiryTime`.
+
+```
+import SessionManagement from 'dis-authorisation-client-js';
 
 // Define session and refresh expiry times
 const sessionExpiryTime = new Date(new Date().getTime() + 60 * 60 * 1000); // 1 hour from now
@@ -22,38 +72,28 @@ const refreshExpiryTime = new Date(new Date().getTime() + 24 * 60 * 60 * 1000); 
 SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime);
 ```
 
-2. Initialising with Custom Configuration
-You can call `init` with a custom config, this allows you to specify callbacks and settings:
+### Note
+
+If expiry times are found in local storage or cookies, those times will be used by default, even if provided times are not. You can also call `setSessionExpiryTime` without providing times, and the library will use the times found in local storage or cookies. To check if times need to be provided or not, you can use `isSessionValid`. 
 
 ```
-import SessionManagement from 'session-management-library';
+import { isSessionExpired } from 'dis-authorisation-client-js';
 
-// Define configuration
-const config = {
-  timeOffsets: { passiveRenewal: 300000 }, // Session renewal offset: 5 minutes
-  checkSessionOnInit: true, // Check session status on initialisation
-  onRenewSuccess: (expiryTime) => {
-    console.log(`[APP] Session renewed successfully! New expiry: ${expiryTime}`);
-  },
-  onRenewFailure: (error) => {
-    console.error('[APP] Session renewal failed:', error);
-  },
-  onSessionValid: (sessionExpiryTime) => {
-    console.log(`[APP] Session is valid until: ${sessionExpiryTime}`);
-  },
-  onSessionInvalid: () => {
-    console.warn('[APP] Session is invalid.');
-  },
-};
+async function renewSession() {
+  const isExpired = await isSessionExpired();
 
-// Initialise the SessionManagement library
-SessionManagement.init(config);
+  if (isExpired) {
+    // Define session and refresh expiry times
+    const sessionExpiryTime = new Date(new Date().getTime() + 60 * 60 * 1000); // 1 hour from now
+    const refreshExpiryTime = new Date(new Date().getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
 
-// Set session expiry times after initialisation
-const sessionExpiryTime = new Date(new Date().getTime() + 60 * 60 * 1000); // 1 hour
-const refreshExpiryTime = new Date(new Date().getTime() + 24 * 60 * 60 * 1000); // 24 hours
+    // Set the expiry timers
+    SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime);
+  } else {
+    SessionManagement.setSessionExpiryTime();
+  }
+}
 
-SessionManagement.setSessionExpiryTime(sessionExpiryTime, refreshExpiryTime);
 ```
 
 ### Dependencies
