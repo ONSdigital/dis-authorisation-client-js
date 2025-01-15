@@ -1,5 +1,5 @@
 import {
-  createDefaultExpireTimes,
+  createDefaultExpiryTimes,
   checkSessionStatus,
   renewSession,
   isSessionExpired,
@@ -46,9 +46,9 @@ describe('Utils', () => {
     jest.resetAllMocks();
   });
 
-  describe('createDefaultExpireTimes', () => {
+  describe('createDefaultExpiryTimes', () => {
     test('should create valid session and refresh expiry times', () => {
-      const result = createDefaultExpireTimes(12);
+      const result = createDefaultExpiryTimes(12);
 
       const now = new Date();
       const expectedExpiry = new Date(now.setHours(now.getHours() + 12));

@@ -39,18 +39,18 @@ JS library for client side token renewal
   ```
 
 2. Setting Session Expiry Times.
-  You can set the session and refresh expiry times either by creating default expiry times using `createDefaultExpireTimes` or by setting them directly.
+  You can set the session and refresh expiry times either by creating default expiry times using `createDefaultExpiryTimes` or by setting them directly.
   If init has not been called yet, the library will automatically initialise with default settings.
 
-  #### Using `createDefaultExpireTimes`
+  #### Using `createDefaultExpiryTimes`
 
-  You can create default expiry times for session and refresh using `createDefaultExpireTimes`:
+  You can create default expiry times for session and refresh using `createDefaultExpiryTimes`:
 
   ```
-  import SessionManagement, { createDefaultExpireTimes } from 'dis-authorisation-client-js';
+  import SessionManagement, { createDefaultExpiryTimes } from 'dis-authorisation-client-js';
 
   // Create default expiry times
-  const { session_expiry_time, refresh_expiry_time } = createDefaultExpireTimes(12); // 12 hours
+  const { session_expiry_time, refresh_expiry_time } = createDefaultExpiryTimes(12); // 12 hours
 
   // Set the expiry timers
   SessionManagement.setSessionExpiryTime(session_expiry_time, refresh_expiry_time);

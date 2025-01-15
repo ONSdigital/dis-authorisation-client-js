@@ -2,7 +2,7 @@ import fp from 'lodash/fp.js';
 import { apiConfig } from '../config/config.js';
 import { getAuthState } from './auth.js';
 
-export function createDefaultExpireTimes(hours) {
+export function createDefaultExpiryTimes(hours) {
   console.log('[LIBRARY] Creating default expire times for', hours, 'hours');
   const now = new Date();
   const expiry = now.setHours(now.getHours() + hours);
