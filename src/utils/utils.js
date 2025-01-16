@@ -3,7 +3,7 @@ import { apiConfig } from '../config/config.js';
 import { getAuthState } from './auth.js';
 
 export function createDefaultExpiryTimes(hours) {
-  console.debug('[LIBRARY] Creating default expire times for', hours, 'hours');
+  console.debug('[LIBRARY] Creating default expiry times for', hours, 'hours');
   const now = new Date();
   const expiry = now.setHours(now.getHours() + hours);
   return {
