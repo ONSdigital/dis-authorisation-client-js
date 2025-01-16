@@ -3,7 +3,7 @@ import {
   checkSessionStatus,
   renewSession,
   isSessionExpired,
-  convertUTCToJSDate,
+  validateExpiryTime
 } from './utils.js';
 import { getAuthState } from './auth.js';
 import { apiConfig } from '../config/config.js';
@@ -102,19 +102,32 @@ describe('Utils', () => {
     });
   });
 
-  describe('convertUTCToJSDate', () => {
-    test('should convert valid UTC string to JS Date', () => {
-      const utcString = '2024-12-31T23:59:59.000Z';
-      const result = convertUTCToJSDate(utcString);
-
-      expect(result).toBeInstanceOf(Date);
-      expect(result.toISOString()).toBe(utcString);
+  describe('validateExpiryTime', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+  
+    test('should return null for invalid input', () => {
+      expect(validateExpiryTime(null)).toBeNull();
+      expect(validateExpiryTime(undefined)).toBeNull();
+      expect(validateExpiryTime()).toBeNull();
     });
 
-    test('should return null for invalid input', () => {
-      expect(convertUTCToJSDate(null)).toBeNull();
-      expect(convertUTCToJSDate(undefined)).toBeNull();
-      expect(convertUTCToJSDate()).toBeNull();
+    test('should return converted date when given a valid unconverted date', () => {
+      const validDate = new Date('2025-01-16T00:00:00.000Z');
+
+      const result = validateExpiryTime('Thu Jan 16 2025 00:00:00 GMT+0000');
+      expect(result).toEqual(validDate);
+    });
+  
+    test('should return null and log error when given an invalid date', () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  
+      const result = validateExpiryTime('invalid date');
+      expect(result).toBeNull();
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[LIBRARY] Invalid format:', expect.any(Date));
+  
+      consoleErrorSpy.mockRestore();
     });
   });
 
@@ -191,7 +204,6 @@ describe('Utils', () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'internal-token': 'FD0108EA-825D-411C-9B1D-41EF7727F465',
         },
         body: JSON.stringify(mockBody),
       });

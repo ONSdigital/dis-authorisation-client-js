@@ -3,7 +3,7 @@ import { apiConfig } from '../config/config.js';
 import { getAuthState } from './auth.js';
 
 export function createDefaultExpiryTimes(hours) {
-  console.log('[LIBRARY] Creating default expire times for', hours, 'hours');
+  console.debug('[LIBRARY] Creating default expire times for', hours, 'hours');
   const now = new Date();
   const expiry = now.setHours(now.getHours() + hours);
   return {
@@ -13,7 +13,7 @@ export function createDefaultExpiryTimes(hours) {
 }
 
 function getCookieByName(name) {
-  console.log('[LIBRARY] Getting cookie by name:', name);
+  console.debug('[LIBRARY] Getting cookie by name:', name);
   const cookies = document.cookie;
   if (!cookies) {
     return null;
@@ -23,13 +23,13 @@ function getCookieByName(name) {
 }
 
 export async function checkSessionStatus() {
-  console.log('[LIBRARY] Checking initial session status');
+  console.debug('[LIBRARY] Checking initial session status');
   const authState = getAuthState();
   const sessionExpiryTime = fp.get('session_expiry_time')(authState);
   const refreshExpiryTime = fp.get('refresh_expiry_time')(authState);
 
   if (sessionExpiryTime) {
-    console.log('[LIBRARY] Initial session status:', sessionExpiryTime);
+    console.debug('[LIBRARY] Initial session status:', sessionExpiryTime);
     return { checkedSessionExpiryTime: sessionExpiryTime, checkedRefreshExpiryTime: refreshExpiryTime };
   }
   // Check cookie data for access token
@@ -38,7 +38,7 @@ export async function checkSessionStatus() {
     try {
       const decodedToken = JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64').toString());
       const expirationTime = new Date(decodedToken.exp * 1000);
-      console.log('[LIBRARY] Initial session status from access token:', expirationTime);
+      console.debug('[LIBRARY] Initial session status from access token:', expirationTime);
       return { checkedSessionExpiryTime: expirationTime, checkedRefreshExpiryTime: refreshExpiryTime };
     } catch (error) {
       console.error('[LIBRARY] Failed to decode access token:', error);
@@ -50,17 +50,16 @@ export async function checkSessionStatus() {
 }
 
 export async function renewSession(body) {
-  console.log('[LIBRARY] Starting session renewal process: ', body);
+  console.debug('[LIBRARY] Starting session renewal process: ', body);
   const response = await fetch(apiConfig.RENEW_SESSION, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      'internal-token': 'FD0108EA-825D-411C-9B1D-41EF7727F465',
     },
     body: JSON.stringify(body),
   });
 
-  console.log(`[LIBRARY] Fetch request sent to ${apiConfig.RENEW_SESSION}:`, response);
+  console.debug(`[LIBRARY] Fetch request sent to ${apiConfig.RENEW_SESSION}:`, response);
 
   if (!response.ok) {
     console.error('[LIBRARY] Failed to renew session, response status:', response.status);
@@ -89,6 +88,7 @@ export async function isSessionExpired(expiryTime) {
   const diffInSeconds = Math.round(timerInterval / 1000);
 
   if (Number.isNaN(diffInSeconds)) {
+    console.error('[LIBRARY] time interval is not a valid date format:', timerInterval);
     throw new Error('encounted an error checking time interval: diffInSeconds is NaN');
   }
   if (diffInSeconds <= 0) {
@@ -97,10 +97,12 @@ export async function isSessionExpired(expiryTime) {
   return false;
 }
 
-export function convertUTCToJSDate(expiryTime) {
-  if (expiryTime) {
-    const expireTimeInUTCString = expiryTime.replace(' +0000 UTC', 'Z');
-    return new Date(expireTimeInUTCString);
+export function validateExpiryTime(expiryTime) {
+  if (!expiryTime) return null;
+  const convertedExpiryTime = new Date(expiryTime);
+  if (isNaN(convertedExpiryTime.getTime())) {
+    console.error('[LIBRARY] Invalid format:', convertedExpiryTime);
+    return null;
   }
-  return null;
+  return convertedExpiryTime;
 }

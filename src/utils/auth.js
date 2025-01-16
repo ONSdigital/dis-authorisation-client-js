@@ -5,7 +5,7 @@ export function getAuthState() {
   try {
     userData = JSON.parse(userData);
   } catch (err) {
-    console.error('[STORAGE] Could not parse auth token from local storage:', err);
+    console.error('[STORAGE] Could not parse session timers from local storage:', err);
     return undefined;
   }
   return userData;

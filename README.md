@@ -18,13 +18,13 @@ JS library for client side token renewal
   const config = {
     timeOffsets: { passiveRenewal: 300000 }, // Session renewal offset: 5 minutes
     onRenewSuccess: (sessionExpiryTime, refreshExpiryTime) => {
-      console.log(`[APP] Session renewed successfully! Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`);
+      console.debug(`[APP] Session renewed successfully! Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`);
     },
     onRenewFailure: (error) => {
       console.error('[APP] Session renewal failed:', error);
     },
     onSessionValid: (sessionExpiryTime, refreshExpiryTime) => {
-      console.log(`[APP] Session is valid. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`);
+      console.debug(`[APP] Session is valid. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}`);
     },
     onSessionInvalid: () => {
       console.warn('[APP] Session is invalid.');
@@ -106,9 +106,9 @@ async function renewSession() {
 | Option              | Type     | Default Value | Description                                                                 |
 |---------------------|----------|---------------|-----------------------------------------------------------------------------|
 | `timeOffsets`       | Object   | `{ passiveRenewal: 300000 }` | Time offsets for session renewal in milliseconds.                           |
-| `onRenewSuccess`    | Function | `(sessionExpiryTime, refreshExpiryTime) => console.log('[LIBRARY] Session renewed successfully. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}')` | Callback function to be called on successful session renewal.               |
+| `onRenewSuccess`    | Function | `(sessionExpiryTime, refreshExpiryTime) => console.debug('[LIBRARY] Session renewed successfully. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}')` | Callback function to be called on successful session renewal.               |
 | `onRenewFailure`    | Function | `() => console.warn('[LIBRARY] Session renewal failed')` | Callback function to be called on session renewal failure.                  |
-| `onSessionValid`    | Function | `(sessionExpiryTime, refreshExpiryTime) => console.log('[LIBRARY] Session Valid. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}')` | Callback function to be called when the session is valid.                   |
+| `onSessionValid`    | Function | `(sessionExpiryTime, refreshExpiryTime) => console.debug('[LIBRARY] Session Valid. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}')` | Callback function to be called when the session is valid.                   |
 | `onSessionInvalid`  | Function | `() => console.warn('[LIBRARY] Session is invalid')` | Callback function to be called when the session is invalid.                 |
 
 ### apiConfig

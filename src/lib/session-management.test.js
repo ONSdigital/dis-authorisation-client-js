@@ -1,7 +1,7 @@
 import SessionManagement from './session-management.js';
 import { defaultConfig } from '../config/config.js';
 import {
-  checkSessionStatus, renewSession, convertUTCToJSDate,
+  checkSessionStatus, renewSession, validateExpiryTime
 } from '../utils/utils.js';
 import { getAuthState } from '../utils/auth.js';
 
@@ -16,7 +16,7 @@ jest.mock('../utils/auth.js', () => ({
 jest.mock('../utils/utils.js', () => ({
   checkSessionStatus: jest.fn(),
   renewSession: jest.fn(),
-  convertUTCToJSDate: jest.fn(),
+  validateExpiryTime: jest.fn(),
 }));
 
 class LocalStorageMock {
@@ -81,6 +81,10 @@ describe('SessionManagement', () => {
 
   describe('Initialisation', () => {
     test('should initialise with a valid session and call onSessionValid', async () => {
+      validateExpiryTime
+        .mockImplementationOnce(() => new Date('2024-12-19T17:00:00.000Z'))
+        .mockImplementationOnce(() => new Date('2024-12-20T17:00:00.000Z'));
+
       checkSessionStatus.mockResolvedValue({
         checkedSessionExpiryTime: null,
         checkedRefreshExpiryTime: null,
@@ -117,16 +121,21 @@ describe('SessionManagement', () => {
       expect(SessionManagement.config).toEqual(Object.freeze({ ...defaultConfig, ...mockConfig }));
     });
 
+    test('should initialise with a valid config if no config provided', () => {
+      SessionManagement.init();
+      expect(SessionManagement.config).toEqual(Object.freeze({ ...defaultConfig }));
+    });
+
     test('should throw an error if invalid config is provided to init', () => {
       expect(() => {
-        SessionManagement.init(null);
+        SessionManagement.init("invalid config");
       }).toThrow('[LIBRARY] Invalid configuration object');
     });
   });
 
   describe('Timer Management', () => {
     test(
-      'should not set timers if no sessionExpiryTime or refreshExpiryTime'
+      'should not set timers if no sessionExpiryTime or refreshExpiryTime '
       + 'is provided and nothing returned from checkSessionStatus',
       async () => {
         checkSessionStatus.mockResolvedValue({
@@ -142,6 +151,10 @@ describe('SessionManagement', () => {
     );
 
     test('should set session timers when valid sessionExpiryTime and refreshExpiryTime are provided', async () => {
+      validateExpiryTime
+      .mockImplementationOnce(() => new Date('2024-12-19T17:00:00.000Z'))
+      .mockImplementationOnce(() => new Date('2024-12-20T17:00:00.000Z'));
+      
       checkSessionStatus.mockResolvedValue({
         checkedSessionExpiryTime: null,
         checkedRefreshExpiryTime: null,
@@ -242,7 +255,7 @@ describe('SessionManagement', () => {
       renewSession.mockResolvedValue({
         expirationTime: '2024-12-30T13:00:00+0000 UTC',
       });
-      convertUTCToJSDate.mockReturnValue(new Date('2024-12-30T13:00:00.000Z'));
+      validateExpiryTime.mockReturnValue(new Date('2024-12-30T13:00:00.000Z'));
       getAuthState.mockReturnValue({ refresh_expiry_time: new Date('2024-12-30T12:00:00.000Z') });
 
       checkSessionStatus.mockResolvedValue({
