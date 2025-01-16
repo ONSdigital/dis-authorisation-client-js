@@ -3,7 +3,7 @@ import {
   checkSessionStatus,
   renewSession,
   isSessionExpired,
-  validateExpiryTime
+  validateExpiryTime,
 } from './utils.js';
 import { getAuthState } from './auth.js';
 import { apiConfig } from '../config/config.js';
@@ -106,7 +106,7 @@ describe('Utils', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
-  
+
     test('should return null for invalid input', () => {
       expect(validateExpiryTime(null)).toBeNull();
       expect(validateExpiryTime(undefined)).toBeNull();
@@ -119,14 +119,14 @@ describe('Utils', () => {
       const result = validateExpiryTime('Thu Jan 16 2025 00:00:00 GMT+0000');
       expect(result).toEqual(validDate);
     });
-  
+
     test('should return null and log error when given an invalid date', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-  
+
       const result = validateExpiryTime('invalid date');
       expect(result).toBeNull();
       expect(consoleErrorSpy).toHaveBeenCalledWith('[LIBRARY] Invalid format:', expect.any(Date));
-  
+
       consoleErrorSpy.mockRestore();
     });
   });

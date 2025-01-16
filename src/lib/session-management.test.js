@@ -1,7 +1,7 @@
 import SessionManagement from './session-management.js';
 import { defaultConfig } from '../config/config.js';
 import {
-  checkSessionStatus, renewSession, validateExpiryTime
+  checkSessionStatus, renewSession, validateExpiryTime,
 } from '../utils/utils.js';
 import { getAuthState } from '../utils/auth.js';
 
@@ -128,7 +128,7 @@ describe('SessionManagement', () => {
 
     test('should throw an error if invalid config is provided to init', () => {
       expect(() => {
-        SessionManagement.init("invalid config");
+        SessionManagement.init('invalid config');
       }).toThrow('[LIBRARY] Invalid configuration object');
     });
   });
@@ -152,9 +152,9 @@ describe('SessionManagement', () => {
 
     test('should set session timers when valid sessionExpiryTime and refreshExpiryTime are provided', async () => {
       validateExpiryTime
-      .mockImplementationOnce(() => new Date('2024-12-19T17:00:00.000Z'))
-      .mockImplementationOnce(() => new Date('2024-12-20T17:00:00.000Z'));
-      
+        .mockImplementationOnce(() => new Date('2024-12-19T17:00:00.000Z'))
+        .mockImplementationOnce(() => new Date('2024-12-20T17:00:00.000Z'));
+
       checkSessionStatus.mockResolvedValue({
         checkedSessionExpiryTime: null,
         checkedRefreshExpiryTime: null,

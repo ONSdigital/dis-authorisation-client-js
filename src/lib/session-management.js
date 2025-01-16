@@ -1,7 +1,7 @@
 import fp from 'lodash/fp.js';
 import { defaultConfig } from '../config/config.js';
 import {
-  checkSessionStatus, renewSession, validateExpiryTime
+  checkSessionStatus, renewSession, validateExpiryTime,
 } from '../utils/utils.js';
 import { updateAuthState, getAuthState, removeAuthState } from '../utils/auth.js';
 
@@ -84,19 +84,17 @@ class SessionManagement {
 
   handleSessionValidity(isValid, sessionExpiryTime, refreshExpiryTime) {
     const { onSessionValid, onSessionInvalid } = this.config;
-  
+
     if (isValid) {
       if (onSessionValid) {
         onSessionValid(sessionExpiryTime, refreshExpiryTime);
       } else {
         console.debug('[LIBRARY] No onSessionValid callback provided.');
       }
+    } else if (onSessionInvalid) {
+      onSessionInvalid();
     } else {
-      if (onSessionInvalid) {
-        onSessionInvalid();
-      } else {
-        console.debug('[LIBRARY] No onSessionInvalid callback provided.');
-      }
+      console.debug('[LIBRARY] No onSessionInvalid callback provided.');
     }
   }
 

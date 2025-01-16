@@ -100,7 +100,7 @@ export async function isSessionExpired(expiryTime) {
 export function validateExpiryTime(expiryTime) {
   if (!expiryTime) return null;
   const convertedExpiryTime = new Date(expiryTime);
-  if (isNaN(convertedExpiryTime.getTime())) {
+  if (Number.isNaN(convertedExpiryTime.getTime())) {
     console.error('[LIBRARY] Invalid format:', convertedExpiryTime);
     return null;
   }
