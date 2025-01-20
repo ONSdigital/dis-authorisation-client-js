@@ -9,7 +9,8 @@ JS library for client side token renewal
 ## Usage
 
 1. Initialising with custom configuration.
-  You can call `init` with a custom config, this allows you to specify callbacks and settings:
+  You can call `init` with a custom config, this allows you to specify callbacks and settings.
+  See `defaultConfig` below for more details on what is provided in the default config:
 
   ```
   import SessionManagement from 'dis-authorisation-client-js';

@@ -32,7 +32,7 @@ class SessionManagement {
     return SessionManagement.instance;
   }
 
-  init(config = {}) {
+  init(config = defaultConfig) {
     if (typeof config !== 'object') {
       throw new Error('[LIBRARY] Invalid configuration object');
     }
@@ -85,17 +85,17 @@ class SessionManagement {
   handleSessionValidity(isValid, sessionExpiryTime, refreshExpiryTime) {
     const { onSessionValid, onSessionInvalid } = this.config;
 
-    if (isValid) {
-      if (onSessionValid) {
-        onSessionValid(sessionExpiryTime, refreshExpiryTime);
-      } else {
-        console.debug('[LIBRARY] No onSessionValid callback provided.');
-      }
-    } else if (onSessionInvalid) {
-      onSessionInvalid();
-    } else {
-      console.debug('[LIBRARY] No onSessionInvalid callback provided.');
+    if (isValid && onSessionValid) {
+      onSessionValid(sessionExpiryTime, refreshExpiryTime);
+      return;
     }
+
+    if (!isValid && onSessionInvalid) {
+      onSessionInvalid();
+      return;
+    }
+
+    console.debug(`[LIBRARY] No ${isValid ? 'onSessionValid' : 'onSessionInvalid'} callback provided.`);
   }
 
   startSessionTimer(sessionExpiryTime) {
