@@ -11,8 +11,7 @@ export const defaultConfig = {
   ),
   onSessionInvalid: () => console.warn('[LIBRARY] Session is invalid'),
   onError: (error) => console.error('[LIBRARY] Error:', error),
-};
-
-export const apiConfig = {
-  RENEW_SESSION: '/tokens/self',
+  apiEndpoints: {
+    renewSession: '/api/v1/tokens/self',
+  }
 };

@@ -160,7 +160,7 @@ class SessionManagement {
       }
     };
     try {
-      const response = await renewSession();
+      const response = await renewSession(this.config.apiEndpoints.renewSession);
       if (response) {
         let expirationTime = fp.get('expirationTime')(response);
         console.debug(
