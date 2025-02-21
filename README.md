@@ -111,7 +111,7 @@ async function renewSession() {
 | `onRenewFailure`    | Function | `() => console.warn('[LIBRARY] Session renewal failed')` | Callback function to be called on session renewal failure.                  |
 | `onSessionValid`    | Function | `(sessionExpiryTime, refreshExpiryTime) => console.debug('[LIBRARY] Session Valid. Session: ${sessionExpiryTime} and refresh: ${refreshExpiryTime}')` | Callback function to be called when the session is valid.                   |
 | `onSessionInvalid`  | Function | `() => console.warn('[LIBRARY] Session is invalid')` | Callback function to be called when the session is invalid.                 |
-| `RENEW_SESSION`      | String   | `/api/v1/tokens/self`               | The API endpoint for renewing the session.                                  |                      |
+| `apiEndpoints`      | String   | `{ renewSession: "/api/v1/tokens/self" }`               | The API endpoint for renewing the session.                                  |                      |
 
 
 
