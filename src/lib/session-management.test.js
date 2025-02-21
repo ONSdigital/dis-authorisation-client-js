@@ -1,5 +1,5 @@
 import SessionManagement from './session-management.js';
-import { defaultConfig } from '../config/config.js';
+import defaultConfig from '../config/config.js';
 import {
   checkSessionStatus, renewSession, validateExpiryTime,
 } from '../utils/utils.js';
