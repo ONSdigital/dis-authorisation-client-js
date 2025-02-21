@@ -6,7 +6,7 @@ import {
   validateExpiryTime,
 } from './utils.js';
 import { getAuthState } from './auth.js';
-import { apiConfig } from '../config/config.js';
+import { defaultConfig } from '../config/config.js';
 
 class LocalStorageMock {
   constructor() {
@@ -199,8 +199,8 @@ describe('Utils', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result = await renewSession(mockBody);
-      expect(fetch).toHaveBeenCalledWith(apiConfig.RENEW_SESSION, {
+      const result = await renewSession(defaultConfig.apiEndpoints.renewSession, mockBody);
+      expect(fetch).toHaveBeenCalledWith(defaultConfig.apiEndpoints.renewSession, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

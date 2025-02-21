@@ -49,9 +49,9 @@ export async function checkSessionStatus() {
   return { checkedSessionExpiryTime: null, checkedRefreshExpiryTime: null };
 }
 
-export async function renewSession(body) {
+export async function renewSession(renewSessionEndpoint, body) {
   console.debug('[LIBRARY] Starting session renewal process: ', body);
-  const response = await fetch(apiConfig.RENEW_SESSION, {
+  const response = await fetch(renewSessionEndpoint, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export async function renewSession(body) {
     body: JSON.stringify(body),
   });
 
-  console.debug(`[LIBRARY] Fetch request sent to ${apiConfig.RENEW_SESSION}:`, response);
+  console.debug(`[LIBRARY] Fetch request sent to ${renewSessionEndpoint}:`, response);
 
   if (!response.ok) {
     console.error('[LIBRARY] Failed to renew session, response status:', response.status);
