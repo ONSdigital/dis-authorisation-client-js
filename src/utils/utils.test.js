@@ -6,7 +6,7 @@ import {
   validateExpiryTime,
 } from './utils.js';
 import { getAuthState } from './auth.js';
-import { defaultConfig } from '../config/config.js';
+import defaultConfig from '../config/config.js';
 
 class LocalStorageMock {
   constructor() {

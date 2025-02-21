@@ -1,5 +1,5 @@
 import fp from 'lodash/fp.js';
-import { defaultConfig } from '../config/config.js';
+import defaultConfig from '../config/config.js';
 import {
   checkSessionStatus, renewSession, validateExpiryTime,
 } from '../utils/utils.js';

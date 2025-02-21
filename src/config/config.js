@@ -1,4 +1,4 @@
-export const defaultConfig = {
+const defaultConfig = {
   timeOffsets: {
     passiveRenewal: 300000,
   },
@@ -13,5 +13,7 @@ export const defaultConfig = {
   onError: (error) => console.error('[LIBRARY] Error:', error),
   apiEndpoints: {
     renewSession: '/api/v1/tokens/self',
-  }
+  },
 };
+
+export default defaultConfig;
