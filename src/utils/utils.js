@@ -1,5 +1,4 @@
 import fp from 'lodash/fp.js';
-import { apiConfig } from '../config/config.js';
 import { getAuthState } from './auth.js';
 
 export function createDefaultExpiryTimes(hours) {
