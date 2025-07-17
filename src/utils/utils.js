@@ -80,20 +80,17 @@ export async function isSessionExpired(expiryTime) {
   }
 
   const now = new Date();
-  const nowUTCInMS = now.getTime() + now.getTimezoneOffset() * 60000;
-  const nowInUTC = new Date(nowUTCInMS);
-  // Get the time difference between now and the expiry time minus the timer offset
-  const timerInterval = new Date(sessionExpiryTime) - nowInUTC;
+
+  // Get the time difference between now and the expiry time
+  const timerInterval = new Date(sessionExpiryTime) - now;
   const diffInSeconds = Math.round(timerInterval / 1000);
 
   if (Number.isNaN(diffInSeconds)) {
     console.error('[LIBRARY] time interval is not a valid date format:', timerInterval);
     throw new Error('encounted an error checking time interval: diffInSeconds is NaN');
   }
-  if (diffInSeconds <= 0) {
-    return true;
-  }
-  return false;
+
+  return diffInSeconds <= 0;
 }
 
 export function validateExpiryTime(expiryTime) {
