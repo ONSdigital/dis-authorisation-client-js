@@ -31,16 +31,16 @@ export async function checkSessionStatus() {
     console.debug('[LIBRARY] Initial session status:', sessionExpiryTime);
     return { checkedSessionExpiryTime: sessionExpiryTime, checkedRefreshExpiryTime: refreshExpiryTime };
   }
-  // Check cookie data for access token
-  const accessToken = getCookieByName('access_token');
-  if (accessToken) {
+  // Check cookie data for id token
+  const idToken = getCookieByName('id_token');
+  if (idToken) {
     try {
-      const decodedToken = JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64').toString());
+      const decodedToken = JSON.parse(atob(idToken.split('.')[1]));
       const expirationTime = new Date(decodedToken.exp * 1000);
-      console.debug('[LIBRARY] Initial session status from access token:', expirationTime);
+      console.debug('[LIBRARY] Initial session status from id token:', expirationTime);
       return { checkedSessionExpiryTime: expirationTime, checkedRefreshExpiryTime: refreshExpiryTime };
     } catch (error) {
-      console.error('[LIBRARY] Failed to decode access token:', error);
+      console.error('[LIBRARY] Failed to decode id token:', error);
       return { checkedSessionExpiryTime: null, checkedRefreshExpiryTime: null };
     }
   }

@@ -147,14 +147,14 @@ describe('Utils', () => {
       });
     });
 
-    test('should return session expiry time from access token in cookie', async () => {
+    test('should return session expiry time from id token in cookie', async () => {
       const mockRefreshExpiryTime = new Date().getTime() + 7200 * 1000; // 2 hours in the future
       getAuthState.mockReturnValue({
         refresh_expiry_time: mockRefreshExpiryTime,
       });
       const mockDecodedToken = { exp: Math.floor(Date.now() / 1000) + 3600 }; // 1 hour in the future
-      const mockAccessToken = `header.${Buffer.from(JSON.stringify(mockDecodedToken)).toString('base64')}.signature`;
-      document.cookie = `access_token=${mockAccessToken}`;
+      const mockIDToken = `header.${Buffer.from(JSON.stringify(mockDecodedToken)).toString('base64')}.signature`;
+      document.cookie = `id_token=${mockIDToken}`;
 
       const result = await checkSessionStatus();
       expect(result).toEqual({
@@ -163,9 +163,9 @@ describe('Utils', () => {
       });
     });
 
-    test('should return null if access token decoding fails', async () => {
+    test('should return null if id token decoding fails', async () => {
       getAuthState.mockReturnValue(null);
-      document.cookie = 'access_token=invalid-token';
+      document.cookie = 'id_token=invalid-token';
 
       const result = await checkSessionStatus();
       expect(result).toEqual({
