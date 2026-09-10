@@ -227,8 +227,28 @@ describe('SessionManagement', () => {
     test('should renew session when active and within the passive renewal window', async () => {
       checkForInactivity.mockReturnValue(false);
 
-      // expires in 4 minutes — within the 5-minute passiveRenewal window
+      // expires in 4 minutes - within the 5-minute passiveRenewal window
       const sessionExpiry = new Date(Date.now() + 4 * 60 * 1000);
+      checkSessionStatus.mockResolvedValue({
+        checkedSessionExpiryTime: sessionExpiry,
+        checkedRefreshExpiryTime: null,
+      });
+
+      const newExpiry = new Date(Date.now() + 15 * 60 * 1000);
+      renewSession.mockResolvedValue({ expirationTime: newExpiry.toISOString() });
+      validateExpiryTime.mockReturnValue(newExpiry);
+      getAuthState.mockReturnValue({ refresh_expiry_time: null });
+
+      SessionManagement.init(mockConfig);
+      await SessionManagement.manageSessionActivity();
+
+      expect(renewSession).toHaveBeenCalled();
+    });
+
+    test('should renew session when checkedSessionExpiryTime is an RFC3339 string within the passive renewal window', async () => {
+      checkForInactivity.mockReturnValue(false);
+
+      const sessionExpiry = new Date(Date.now() + 4 * 60 * 1000).toISOString();
       checkSessionStatus.mockResolvedValue({
         checkedSessionExpiryTime: sessionExpiry,
         checkedRefreshExpiryTime: null,
@@ -248,8 +268,8 @@ describe('SessionManagement', () => {
     test('should not renew session when active but outside the passive renewal window', async () => {
       checkForInactivity.mockReturnValue(false);
 
-      // expires in 10 minutes — outside the 5-minute passiveRenewal window
-      const sessionExpiry = new Date(Date.now() + 10 * 60 * 1000);
+      // expires in 20 minutes - outside the 14-minute passiveRenewal window
+      const sessionExpiry = new Date(Date.now() + 20 * 60 * 1000);
       checkSessionStatus.mockResolvedValue({
         checkedSessionExpiryTime: sessionExpiry,
         checkedRefreshExpiryTime: null,
@@ -265,7 +285,7 @@ describe('SessionManagement', () => {
     test('should log the interaction when active and no renewal needed', async () => {
       checkForInactivity.mockReturnValue(false);
 
-      const sessionExpiry = new Date(Date.now() + 10 * 60 * 1000);
+      const sessionExpiry = new Date(Date.now() + 20 * 60 * 1000);
       checkSessionStatus.mockResolvedValue({
         checkedSessionExpiryTime: sessionExpiry,
         checkedRefreshExpiryTime: null,

@@ -112,15 +112,21 @@ class SessionManagement {
       return;
     }
     const { checkedSessionExpiryTime } = await checkSessionStatus();
-    if (!checkedSessionExpiryTime) {
+    if (checkedSessionExpiryTime == null) {
       console.debug('[LIBRARY] No session expiry time found, handling session as invalid');
       await this.handleSessionValidity(false);
       return;
     }
 
-    const sessionRenewalTime = new Date(checkedSessionExpiryTime).getTime() - this.config.timeOffsets.passiveRenewal;
+    const sessionExpiryTimestamp = new Date(checkedSessionExpiryTime).getTime();
+    if (Number.isNaN(sessionExpiryTimestamp)) {
+      console.debug('[LIBRARY] Invalid session expiry time found, handling session as invalid');
+      await this.handleSessionValidity(false);
+      return;
+    }
 
-    if (checkedSessionExpiryTime > 0 && sessionRenewalTime < Date.now()) {
+    const sessionRenewalTime = sessionExpiryTimestamp - this.config.timeOffsets.passiveRenewal;
+    if (sessionExpiryTimestamp > 0 && sessionRenewalTime < Date.now()) {
       console.debug('[LIBRARY] Session renewal time has passed, attempting to refresh session');
       console.debug('[LIBRARY] Session expiry time: ', sessionRenewalTime);
       await this.refreshSession();
