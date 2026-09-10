@@ -29,8 +29,9 @@ export function removeInteractionMonitoring(func) {
 
 export function checkForInactivity(inactivityThreshold) {
   const lastInteractionTime = getLastInteractionTime();
+  console.log('[LIBRARY] Last interaction time:', lastInteractionTime);
 
-  if (lastInteractionTime === null) {
+  if (lastInteractionTime === null || lastInteractionTime === undefined) {
     console.debug('[LIBRARY] No last interaction time found, treating as active');
     return false;
   }
